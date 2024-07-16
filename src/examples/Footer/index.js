@@ -1,40 +1,18 @@
-/**
-=========================================================
-* Argon Dashboard 2 MUI - v3.0.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-material-ui
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
-
-// @mui material components
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
-
-// Argon Dashboard 2 MUI components
 import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
-
-// Argon Dashboard 2 MUI base styles
 import typography from "assets/theme/base/typography";
 
-function Footer({ company, links }) {
+function Footer({ company, links, additionalLinks }) {
   const { href, name } = company;
   const { size } = typography;
 
-  const renderLinks = () =>
-    links.map((link) => (
+  const renderLinks = (linkArray) =>
+    linkArray.map((link) => (
       <ArgonBox key={link.name} component="li" px={2} lineHeight={1}>
-        <Link href={link.href} target="_blank">
+        <Link href={link.href} target="_blank" underline="hover">
           <ArgonTypography variant="button" fontWeight="regular" color="text">
             {link.name}
           </ArgonTypography>
@@ -49,7 +27,12 @@ function Footer({ company, links }) {
       flexDirection={{ xs: "column", lg: "row" }}
       justifyContent="space-between"
       alignItems="center"
-      px={1.5}
+      px={3}
+      py={2}
+      bgcolor="background.paper"
+      boxShadow={2}
+      borderRadius={2}
+      sx={{ marginTop: 4 }}
     >
       <ArgonBox
         display="flex"
@@ -60,19 +43,12 @@ function Footer({ company, links }) {
         fontSize={size.sm}
         px={1.5}
       >
-        &copy; {new Date().getFullYear()}, made with
+        &copy; {new Date().getFullYear()}
         <ArgonBox fontSize={size.md} color="text" mb={-0.5} mx={0.25}>
           <Icon color="inherit" fontSize="inherit">
-            favorite
           </Icon>
         </ArgonBox>
-        by
-        <Link href={href} target="_blank">
-          <ArgonTypography variant="button" fontWeight="medium">
-            &nbsp;{name}&nbsp;
-          </ArgonTypography>
-        </Link>
-        for a better web.
+
       </ArgonBox>
       <ArgonBox
         component="ul"
@@ -85,33 +61,47 @@ function Footer({ company, links }) {
           mt: 3,
           mb: 0,
           p: 0,
-
           [breakpoints.up("lg")]: {
             mt: 0,
           },
         })}
       >
-        {renderLinks()}
+        {renderLinks(links)}
       </ArgonBox>
+      {additionalLinks && additionalLinks.length > 0 && (
+        <ArgonBox
+          component="ul"
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+            listStyle: "none",
+            mt: 3,
+            mb: 0,
+            p: 0,
+          }}
+        >
+        </ArgonBox>
+      )}
     </ArgonBox>
   );
 }
 
-// Setting default values for the props of Footer
 Footer.defaultProps = {
-  company: { href: "https://www.creative-tim.com/", name: "Creative Tim" },
+  company: { href: "https://www.example.com/", name: "Remote Work Co." },
   links: [
-    { href: "https://www.creative-tim.com/", name: "Creative Tim" },
-    { href: "https://www.creative-tim.com/presentation", name: "About Us" },
-    { href: "https://www.creative-tim.com/blog", name: "Blog" },
-    { href: "https://www.creative-tim.com/license", name: "License" },
+    { href: "https://www.example.com/about", name: "About Us" },
+    { href: "https://www.example.com/blog", name: "Blog" },
+    { href: "https://www.example.com/contact", name: "Contact" },
   ],
+
 };
 
-// Typechecking props for the Footer
 Footer.propTypes = {
   company: PropTypes.objectOf(PropTypes.string),
   links: PropTypes.arrayOf(PropTypes.object),
+  additionalLinks: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default Footer;

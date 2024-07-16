@@ -1,27 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  IconButton,
-  Container,
-  Typography,
-  Button,
-  Grid, TextField, InputAdornment,
-} from "@mui/material";
 import { Add, Delete, Edit } from '@mui/icons-material';
-import ArgonBox from '../../components/ArgonBox';
-import ArgonTypography from '../../components/ArgonTypography';
-import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
-import Footer from '../../examples/Footer';
-import RequestService from '../../_services/RequestService';
-import UserService from '../../_services/UserService';
 import { makeStyles } from '@mui/styles';
 import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import SearchIcon from '@mui/icons-material/Search';
+import EmployeeService from "../../../_services/EmployeeService";
+import UserService from "../../../_services/UserService";
+import ArgonTypography from "../../../components/ArgonTypography";
+import Footer from "../../../examples/Footer";
+import ArgonBox from "../../../components/ArgonBox";
+import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
+import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card } from "@mui/material";
+import requestService from "../../../_services/RequestService";
 
-const requestService = new RequestService();
+const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
 const useStyles = makeStyles((theme) => ({
@@ -30,18 +24,14 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(2),
     borderRadius: '12px',
   },
-  quickLinkButton: {
-    padding: '12px',
-    borderRadius: '8px',
-    transition: 'background-color 0.3s, color 0.3s',
-    backgroundColor: '#ffffff',
-    color: '#1976d2',
+  addButton: {
+    marginBottom: theme.spacing(2),
+    color: '#ffffff',
+    backgroundColor: theme.palette.primary.main,
     '&:hover': {
-      backgroundColor: '#1976d2',
-      color: '#ffffff',
+      backgroundColor: '#303f9f',
     },
   },
-
   tableContainer: {
     overflowX: 'auto',
     margin: '1%',
@@ -71,12 +61,12 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   statusCell: {
-    width:'125px',
+    width: '125px',
     fontWeight: '600',
     padding: '12px 20px',
     textAlign: 'center',
     borderRadius: '5px',
-    justifyContent:"center",
+    justifyContent: "center",
     color: '#fff',
     transition: 'background-color 0.3s, transform 0.2s',
     display: 'inline-block',
@@ -85,48 +75,33 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   },
   statusPending: {
-    backgroundColor: '#ff9800', // Bright orange for pending
+    backgroundColor: '#ff9800',
     '&:hover': {
-      backgroundColor: '#fb8c00', // Darker orange on hover
+      backgroundColor: '#fb8c00',
     },
   },
   statusApproved: {
-    backgroundColor: '#4caf50', // Vibrant green for approved
+    backgroundColor: '#4caf50',
     '&:hover': {
-      backgroundColor: '#388e3c', // Darker green on hover
+      backgroundColor: '#388e3c',
     },
   },
   statusUpdated: {
-    backgroundColor: '#2196f3', // Bright blue for updated
+    backgroundColor: '#2196f3',
     '&:hover': {
-      backgroundColor: '#1976d2', // Darker blue on hover
+      backgroundColor: '#1976d2',
     },
   },
   statusRejected: {
-    backgroundColor: '#f44336', // Bright red for rejected
+    backgroundColor: '#f44336',
     '&:hover': {
-      backgroundColor: '#d32f2f', // Darker red on hover
+      backgroundColor: '#d32f2f',
     },
   },
-
   pagination: {
     display: 'flex',
     justifyContent: 'center',
     marginTop: theme.spacing(2),
-  },
-  addButton: {
-    marginBottom: theme.spacing(2),
-    color: '#ffffff',
-    backgroundColor: theme.palette.primary.main,
-    '&:hover': {
-      backgroundColor: '#303f9f',
-    },
-  },
-  importantNotes: {
-    marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.grey[100],
-    borderRadius: '8px',
   },
   summarySection: {
     marginTop: theme.spacing(3),
@@ -160,14 +135,15 @@ const Tables = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-
   useEffect(() => {
     fetchRequests();
   }, []);
 
   const fetchRequests = async () => {
     try {
-      const result = await requestService.getAllRequests();
+      const employeeId = 6; // Replace with dynamic value as needed
+      const result = await employeeService.getRequestsByEmployeeId(employeeId);
+
       if (result && Array.isArray(result.$values)) {
         setRequestsData(result.$values);
         await fetchUsers(result.$values.map(request => request.userId));
@@ -235,22 +211,18 @@ const Tables = () => {
     setCurrentPage(page);
   };
 
-  const indexOfLastRequest = currentPage * rowsPerPage;
-  const indexOfFirstRequest = indexOfLastRequest - rowsPerPage;
-  //const currentRequests = requestsData.slice(indexOfFirstRequest, indexOfLastRequest);
-
   const getRequestStats = () => {
-    const stats = {
+    return {
       total: requestsData.length,
       approved: requestsData.filter(req => req.status === 1).length,
       pending: requestsData.filter(req => req.status === 0).length,
       rejected: requestsData.filter(req => req.status === 3).length,
       updated: requestsData.filter(req => req.status === 2).length,
     };
-    return stats;
   };
 
   const stats = getRequestStats();
+
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -260,6 +232,8 @@ const Tables = () => {
     return userName.includes(searchQuery.toLowerCase());
   });
 
+  const indexOfLastRequest = currentPage * rowsPerPage;
+  const indexOfFirstRequest = indexOfLastRequest - rowsPerPage;
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
 
   return (
@@ -290,7 +264,7 @@ const Tables = () => {
             <ArgonBox className="search-input-container" mb={2}>
               <TextField
                 variant="outlined"
-                placeholder="Search by  Name"
+                placeholder="Search by Name"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 InputProps={{
@@ -300,7 +274,7 @@ const Tables = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
+                style={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '20px',
                     transition: 'border-color 0.3s, box-shadow 0.3s',
@@ -315,16 +289,14 @@ const Tables = () => {
                 }}
               />
             </ArgonBox>
-
             <table>
               <thead>
-              <tr >
-                <th>Employee Name</th>
+              <tr>
+                <th>Employee</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Comment</th>
                 <th style={{ textAlign: "center" }}>Status</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th style={{ textAlign: "center" }}>Action</th>
               </tr>
               </thead>
               <tbody>
@@ -333,27 +305,16 @@ const Tables = () => {
                   <td>{userMap[request.userId]}</td>
                   <td>{new Date(request.startDate).toLocaleDateString()}</td>
                   <td>{new Date(request.endDate).toLocaleDateString()}</td>
-                  <td>{request.comment}</td>
                   <td style={{ textAlign: "center" }}>
-                      <span
-                        className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}
-                      >
-                        {Status[request.status]}
-                      </span>
+                    <div className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}>
+                      {Status[request.status]}
+                    </div>
                   </td>
                   <td style={{ textAlign: "center" }}>
-                    <IconButton
-                      onClick={() => handleUpdate(request.requestId)}
-                      color="primary"
-                      aria-label="Edit request"
-                    >
+                    <IconButton onClick={() => handleUpdate(request.requestId)}>
                       <Edit />
                     </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(request.requestId)}
-                      color="secondary"
-                      aria-label="Delete request"
-                    >
+                    <IconButton onClick={() => handleDelete(request.requestId)}>
                       <Delete />
                     </IconButton>
                   </td>
@@ -361,120 +322,49 @@ const Tables = () => {
               ))}
               </tbody>
             </table>
-          </ArgonBox>
+            <Container className={classes.pagination}>
+              <Pagination
+                count={Math.ceil(filteredRequests.length / rowsPerPage)}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+              />
+            </Container>
 
-          <Container className={classes.pagination}>
-            <Pagination
-              count={Math.ceil(requestsData.length / rowsPerPage)}
-              page={currentPage}
-              onChange={handlePageChange}
-              color="primary"
-            />
-          </Container>
-
-          <ArgonBox className={classes.summarySection}>
-            <Grid container spacing={2} justifyContent="space-between">
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
-                  <Typography variant="h6">Total Requests</Typography>
-                  <Typography variant="body1">{stats.total}</Typography>
-                </div>
+            <ArgonBox className={classes.summarySection}>
+              <Grid container spacing={2} justifyContent="space-between">
+                <Grid item xs={12} sm={2}>
+                  <div className={classes.statsItem}>
+                    <ArgonTypography variant="h5">{stats.total}</ArgonTypography>
+                    <ArgonTypography variant="body2">Total Requests</ArgonTypography>
+                  </div>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <div className={classes.statsItem}>
+                    <ArgonTypography variant="h5">{stats.approved}</ArgonTypography>
+                    <ArgonTypography variant="body2">Approved</ArgonTypography>
+                  </div>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <div className={classes.statsItem}>
+                    <ArgonTypography variant="h5">{stats.pending}</ArgonTypography>
+                    <ArgonTypography variant="body2">Pending</ArgonTypography>
+                  </div>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <div className={classes.statsItem}>
+                    <ArgonTypography variant="h5">{stats.rejected}</ArgonTypography>
+                    <ArgonTypography variant="body2">Rejected</ArgonTypography>
+                  </div>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <div className={classes.statsItem}>
+                    <ArgonTypography variant="h5">{stats.updated}</ArgonTypography>
+                    <ArgonTypography variant="body2">Updated</ArgonTypography>
+                  </div>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
-                  <Typography variant="h6">Approved</Typography>
-                  <Typography variant="body1">{stats.approved}</Typography>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
-                  <Typography variant="h6">Pending</Typography>
-                  <Typography variant="body1">{stats.pending}</Typography>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
-                  <Typography variant="h6">Rejected</Typography>
-                  <Typography variant="body1">{stats.rejected}</Typography>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
-                  <Typography variant="h6">Updated</Typography>
-                  <Typography variant="body1">{stats.updated}</Typography>
-                </div>
-              </Grid>
-            </Grid>
-          </ArgonBox>
-
-
-          <div className={classes.importantNotes}>
-            <Typography variant="h6">Important Information:</Typography>
-            <Typography variant="body2">
-              - Requests should be reviewed within 24 hours to ensure timely processing.
-              <br />
-              - Ensure that all required fields are filled out before submission.
-              <br />
-              - Users can only have one pending request at a time.
-              <br />
-              - Status updates are automatically recorded for audit purposes.
-            </Typography>
-          </div>
-
-          <ArgonBox className={classes.summarySection}>
-            <Typography variant="h6">Recent Activities:</Typography>
-            <Typography variant="body2">
-              - {requestsData.filter(req => new Date(req.startDate).getDate() === new Date().getDate()).length} new
-              requests submitted today.
-              <br />
-              - {requestsData.filter(req => req.status === 2 && (new Date(req.status.updated) >= new Date(Date.now() - 60 * 60 * 1000))).length} request
-              updated in the last hour.
-              <br />
-              - {requestsData.filter(req => req.status === 1 && (new Date(req.status.approved) >= new Date(Date.now() - 24 * 60 * 60 * 1000))).length} requests
-              approved in the last 24 hours.
-            </Typography>
-          </ArgonBox>
-
-
-          <ArgonBox className={classes.summarySection}>
-            <Typography variant="h6" style={{ fontWeight: 'bold', marginBottom: '16px' }}>
-              Quick Links:
-            </Typography>
-            <Grid container spacing={2}>
-
-              <Grid item xs={12} sm={4}>
-                <Link to="/calendar" style={{ textDecoration: 'none' }}>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    fullWidth
-                    className={classes.quickLinkButton}
-                  >
-                    View Calendar
-                  </Button>
-                </Link>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  className={classes.quickLinkButton}
-                >
-                  Manage Users
-                </Button>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  className={classes.quickLinkButton}
-                >
-                  Generate Report
-                </Button>
-              </Grid>
-            </Grid>
+            </ArgonBox>
           </ArgonBox>
         </Card>
       </ArgonBox>

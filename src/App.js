@@ -44,6 +44,7 @@ import Index from "./layouts/Request/addRequest";
 import Tables from "./layouts/Request";
 import RequestForm from "./layouts/Request/UpdateRequest/UpdateRequest";
 import UpdateRequest from "./layouts/Request/UpdateRequest/UpdateRequest";
+import Employee from "./layouts/Request/Employee";
 
 export default function App() {
   const [controller, dispatch] = useArgonController();
@@ -183,7 +184,7 @@ export default function App() {
         <Route path="/tables" element={<Tables />} />
         <Route path="/add" element={<Index onSubmit={handleOnSubmit} />} />
         <Route path="/editRequest/:requestId" element={<UpdateRequest />} />
-
+        <Route path="/RequestEmployee" element={<Employee />} />
 
       </Routes>
     </ThemeProvider>

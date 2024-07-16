@@ -1,45 +1,42 @@
-/**
-=========================================================
-* Argon Dashboard 2 MUI - v3.0.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-material-ui
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// react-router-dom components
+import { useState } from "react";
 import { Link } from "react-router-dom";
-
-// @mui material components
 import Card from "@mui/material/Card";
 import Checkbox from "@mui/material/Checkbox";
-
-// Argon Dashboard 2 MUI components
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
 import ArgonInput from "components/ArgonInput";
 import ArgonButton from "components/ArgonButton";
-
-// Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import Socials from "layouts/authentication/components/Socials";
 import Separator from "layouts/authentication/components/Separator";
 
-// Images
-const bgImage =
-  "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg";
+const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg";
 
 function Cover() {
+  const [role, setRole] = useState("");
+  const [position, setPosition] = useState("");
+  const [projectName, setProjectName] = useState("");
+
+  const handleRoleChange = (event, value) => {
+    setRole(value);
+  };
+
+  const handlePositionChange = (event) => {
+    setPosition(event.target.value);
+  };
+
+  const handleProjectNameChange = (event) => {
+    setProjectName(event.target.value);
+  };
+
+  const roles = ["Employee", "Project Manager"];
+
   return (
     <CoverLayout
       title="Welcome!"
-      description="Use these awesome forms to login or create new account in your project for free."
+      description="Use these forms to sign up as an Employee or Project Manager."
       image={bgImage}
       imgPosition="top"
       button={{ color: "dark", variant: "gradient" }}
@@ -59,7 +56,10 @@ function Cover() {
         <ArgonBox pt={2} pb={3} px={3}>
           <ArgonBox component="form" role="form">
             <ArgonBox mb={2}>
-              <ArgonInput placeholder="Name" />
+              <ArgonInput placeholder="First Name" />
+            </ArgonBox>
+            <ArgonBox mb={2}>
+              <ArgonInput placeholder="Last Name" />
             </ArgonBox>
             <ArgonBox mb={2}>
               <ArgonInput type="email" placeholder="Email" />
@@ -67,6 +67,30 @@ function Cover() {
             <ArgonBox mb={2}>
               <ArgonInput type="password" placeholder="Password" />
             </ArgonBox>
+            <ArgonBox mb={2}>
+              <ArgonInput placeholder="Phone" />
+            </ArgonBox>
+            <ArgonBox mb={2}>
+              <ArgonInput placeholder="Department" />
+            </ArgonBox>
+            <ArgonBox mb={2}>
+              <Autocomplete
+                options={roles}
+                value={role}
+                onChange={handleRoleChange}
+                renderInput={(params) => <TextField {...params} label="Role" />}
+              />
+            </ArgonBox>
+            {role === "Employee" && (
+              <ArgonBox mb={2}>
+                <ArgonInput placeholder="Position" value={position} onChange={handlePositionChange} />
+              </ArgonBox>
+            )}
+            {role === "Project Manager" && (
+              <ArgonBox mb={2}>
+                <ArgonInput placeholder="Project Name" value={projectName} onChange={handleProjectNameChange} />
+              </ArgonBox>
+            )}
             <ArgonBox display="flex" alignItems="center">
               <Checkbox defaultChecked />
               <ArgonTypography
@@ -74,7 +98,7 @@ function Cover() {
                 fontWeight="regular"
                 sx={{ cursor: "pointer", userSelect: "none" }}
               >
-                &nbsp;&nbsp;I agree the&nbsp;
+                &nbsp;&nbsp;I agree to the&nbsp;
               </ArgonTypography>
               <ArgonTypography
                 component="a"
@@ -88,7 +112,7 @@ function Cover() {
             </ArgonBox>
             <ArgonBox mt={4} mb={1}>
               <ArgonButton variant="gradient" color="dark" fullWidth>
-                sign up
+                Sign Up
               </ArgonButton>
             </ArgonBox>
             <ArgonBox mt={2}>
@@ -102,7 +126,7 @@ function Cover() {
                   fontWeight="bold"
                   textGradient
                 >
-                  Sign in
+                  Sign In
                 </ArgonTypography>
               </ArgonTypography>
             </ArgonBox>

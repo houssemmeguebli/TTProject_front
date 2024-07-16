@@ -11,6 +11,7 @@ import RequestService from '../_services/RequestService';
 import UserService from "../_services/UserService";
 import DashboardNavbar from "../examples/Navbars/DashboardNavbar";
 import ArgonBox from "../components/ArgonBox";
+import Footer from "../examples/Footer";
 
 const requestService = new RequestService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
@@ -209,6 +210,8 @@ const Calendar = () => {
           </ArgonBox>
         </Paper>
       </Container>
+      <Footer />
+
     </DashboardLayout>
   );
 };
