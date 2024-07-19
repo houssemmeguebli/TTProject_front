@@ -1,11 +1,20 @@
 import axios from 'axios';
 
-const API_URL = 'https://localhost:7157/api/Users'; // Adjust the base URL as needed
+const API_URL = 'https://localhost:7157/api/ProjectManager';
 
-class UserService {
+class ProjectManagerService {
 
   async getAllUsers() {
     return await axios.get(`${API_URL}`);
+  }
+  async createProjectManager(ProjectManager) {
+    try {
+      const response = await axios.post(API_URL, ProjectManager);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating project manager:', error);
+      throw error;
+    }
   }
   async getUserWithId(userId) {
     try {
@@ -42,4 +51,4 @@ class UserService {
 
 }
 
-export default new UserService();
+export default new ProjectManagerService();

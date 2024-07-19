@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Add, Delete, Edit } from '@mui/icons-material';
+import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
 import { makeStyles } from '@mui/styles';
 import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import SearchIcon from '@mui/icons-material/Search';
 import EmployeeService from "../../../_services/EmployeeService";
-import UserService from "../../../_services/UserService";
+import UserService from "../../../_services/ProjectManagerService";
 import ArgonTypography from "../../../components/ArgonTypography";
 import Footer from "../../../examples/Footer";
 import ArgonBox from "../../../components/ArgonBox";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
-import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card } from "@mui/material";
+import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography } from "@mui/material";
 import requestService from "../../../_services/RequestService";
+import { differenceInDays, format, parseISO } from "date-fns";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import DialogActions from "@mui/material/DialogActions";
 
 const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
@@ -126,7 +134,7 @@ const Status = {
   3: 'Rejected',
 };
 
-const Tables = () => {
+const Empolyee = () => {
   const classes = useStyles();
   const [requestsData, setRequestsData] = useState([]);
   const [userMap, setUserMap] = useState({});
@@ -134,6 +142,8 @@ const Tables = () => {
   const [rowsPerPage] = useState(5);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -154,7 +164,13 @@ const Tables = () => {
       console.error('Error fetching requests:', error);
     }
   };
-
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+    setOpenDialog(true);
+  };
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
   const fetchUsers = async (userIds) => {
     try {
       const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
@@ -204,7 +220,7 @@ const Tables = () => {
   };
 
   const handleUpdate = (requestId) => {
-    navigate(`/editRequest/${requestId}`);
+    navigate(`/editRequestEmp/${requestId}`);
   };
 
   const handlePageChange = (event, page) => {
@@ -249,7 +265,7 @@ const Tables = () => {
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
             <ArgonTypography variant="h6" fontWeight="medium">Table of Requests</ArgonTypography>
-            <Link to="/add" style={{ textDecoration: 'none' }}>
+            <Link to="/AddRequestEmp" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -293,8 +309,8 @@ const Tables = () => {
               <thead>
               <tr>
                 <th>Employee</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th style={{ textAlign: "center" }}>Period</th>
+                <th style={{ textAlign: "center" }}>Days</th>
                 <th style={{ textAlign: "center" }}>Status</th>
                 <th style={{ textAlign: "center" }}>Action</th>
               </tr>
@@ -303,14 +319,28 @@ const Tables = () => {
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
                   <td>{userMap[request.userId]}</td>
-                  <td>{new Date(request.startDate).toLocaleDateString()}</td>
-                  <td>{new Date(request.endDate).toLocaleDateString()}</td>
+                  <td style={{ textAlign: "center" }}>
+                    <span style={{ margin: "0 10px" }}>From</span>
+                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
+                    <span style={{ margin: "0 10px" }}>To</span>
+                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.endDate), "dd-MM-yyyy")}</span>
+                  </td>
+                  <td
+                    style={{ textAlign: "center" }}>{differenceInDays(parseISO(request.endDate), parseISO(request.startDate)) + 1}
+                  </td>
                   <td style={{ textAlign: "center" }}>
                     <div className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}>
                       {Status[request.status]}
                     </div>
                   </td>
                   <td style={{ textAlign: "center" }}>
+                    <IconButton
+                      aria-label="View"
+                      onClick={() => handleViewDetails(request)}
+                    >
+                      <Visibility />
+                    </IconButton>
+
                     <IconButton onClick={() => handleUpdate(request.requestId)}>
                       <Edit />
                     </IconButton>
@@ -357,20 +387,80 @@ const Tables = () => {
                     <ArgonTypography variant="body2">Rejected</ArgonTypography>
                   </div>
                 </Grid>
-                <Grid item xs={12} sm={2}>
-                  <div className={classes.statsItem}>
-                    <ArgonTypography variant="h5">{stats.updated}</ArgonTypography>
-                    <ArgonTypography variant="body2">Updated</ArgonTypography>
-                  </div>
-                </Grid>
+
               </Grid>
             </ArgonBox>
           </ArgonBox>
         </Card>
       </ArgonBox>
       <Footer />
+      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
+        <DialogTitle className={classes.dialogTitle} style={{ color: "white" }}>Request Details</DialogTitle>
+        <DialogContent dividers >
+          {selectedRequest && (
+            <List >
+              <ListItem className={classes.listItem} >
+                <ListItemText style={{ textAlign: "center" }}
+                              primary="Employee Name"
+                              secondary={userMap[selectedRequest.userId]}
+                />
+              </ListItem >
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Start Date"
+                  secondary={format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="End Date"
+                  secondary={format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Duration"
+                  secondary={`${differenceInDays(parseISO(selectedRequest.endDate), parseISO(selectedRequest.startDate)) + 1} days`}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Employee Comment"
+                  secondary={selectedRequest.comment || 'No comment'}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Update Reason"
+                  secondary={selectedRequest.note || 'No updates'}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Status"
+                  secondary={
+                    <Typography
+                      className={
+                        selectedRequest.status === 1 ? classes.approved : selectedRequest.status === 2 ? classes.rejected : ''
+                      }
+                    >
+                      {Status[selectedRequest.status]}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </DashboardLayout>
   );
 };
 
-export default Tables;
+export default Empolyee;

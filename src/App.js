@@ -45,6 +45,8 @@ import Tables from "./layouts/Request";
 import RequestForm from "./layouts/Request/UpdateRequest/UpdateRequest";
 import UpdateRequest from "./layouts/Request/UpdateRequest/UpdateRequest";
 import Employee from "./layouts/Request/Employee";
+import AddRequestEmp from "./layouts/Request/Employee/AddRequestEmpolyee";
+import UpdateRequestEmp from "./layouts/Request/Employee/UpdateRequestEmp";
 
 export default function App() {
   const [controller, dispatch] = useArgonController();
@@ -168,7 +170,7 @@ export default function App() {
           <Sidenav
             color={sidenavColor}
             brand={darkSidenav || darkMode ? brand : brandDark}
-            brandName="Argon Dashboard 2 PRO"
+            brandName="TTProject"
             routes={routes}
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
@@ -180,12 +182,16 @@ export default function App() {
       {layout === "vr" && <Configurator />}
       <Routes>
         {getRoutes(routes)}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route path="*" element={<Navigate to="/Calendar" />} />
         <Route path="/tables" element={<Tables />} />
         <Route path="/add" element={<Index onSubmit={handleOnSubmit} />} />
         <Route path="/editRequest/:requestId" element={<UpdateRequest />} />
-        <Route path="/RequestEmployee" element={<Employee />} />
+        <Route path="/editRequestEmp/:requestId" element={<UpdateRequestEmp />} />
 
+        <Route path="/RequestEmployee" element={<Employee />} />
+        <Route path="/AddRequestEmp" element={<AddRequestEmp onSubmit={handleOnSubmit} />} />
+
+        UpdateRequestEmp
       </Routes>
     </ThemeProvider>
   );

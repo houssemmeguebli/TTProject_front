@@ -8,7 +8,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { makeStyles } from '@mui/styles';
 import DashboardLayout from '../examples/LayoutContainers/DashboardLayout';
 import RequestService from '../_services/RequestService';
-import UserService from "../_services/UserService";
+import UserService from "../_services/ProjectManagerService";
 import DashboardNavbar from "../examples/Navbars/DashboardNavbar";
 import ArgonBox from "../components/ArgonBox";
 import Footer from "../examples/Footer";

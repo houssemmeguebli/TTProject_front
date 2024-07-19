@@ -7,24 +7,55 @@ import {
   Button,
   Grid, TextField, InputAdornment,
 } from "@mui/material";
-import { Add, Delete, Edit } from '@mui/icons-material';
+import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
 import ArgonBox from '../../components/ArgonBox';
 import ArgonTypography from '../../components/ArgonTypography';
 import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
 import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
 import Footer from '../../examples/Footer';
 import RequestService from '../../_services/RequestService';
-import UserService from '../../_services/UserService';
+import UserService from '../../_services/ProjectManagerService';
 import { makeStyles } from '@mui/styles';
 import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import SearchIcon from '@mui/icons-material/Search';
+import { differenceInDays, format, parseISO } from "date-fns";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import ListItemText from "@mui/material/ListItemText";
+import ListItem from "@mui/material/ListItem";
+import List from "@mui/material/List";
 
 const requestService = new RequestService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
 const useStyles = makeStyles((theme) => ({
+  dialogTitle: {
+    backgroundColor: theme.palette.primary.main,
+    color: 'white',
+    textAlign: 'center',
+    padding: theme.spacing(2),
+  },
+  dialogContent: {
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
+
+  },
+  listItem: {
+    marginBottom: theme.spacing(2),
+  },
+  listItemTextPrimary: {
+    fontWeight: 'bold'
+  },
+  approved: {
+    color: theme.palette.success.main,
+  },
+  rejected: {
+    color: theme.palette.error.main,
+  },
   card: {
     boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
     margin: theme.spacing(2),
@@ -159,15 +190,19 @@ const Tables = () => {
   const [rowsPerPage] = useState(5);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
 
   useEffect(() => {
     fetchRequests();
   }, []);
 
+
   const fetchRequests = async () => {
     try {
       const result = await requestService.getAllRequests();
+
       if (result && Array.isArray(result.$values)) {
         setRequestsData(result.$values);
         await fetchUsers(result.$values.map(request => request.userId));
@@ -177,6 +212,13 @@ const Tables = () => {
     } catch (error) {
       console.error('Error fetching requests:', error);
     }
+  };
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+    setOpenDialog(true);
+  };
+  const handleDialogClose = () => {
+    setOpenDialog(false);
   };
 
   const fetchUsers = async (userIds) => {
@@ -263,6 +305,7 @@ const Tables = () => {
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
 
   return (
+
     <DashboardLayout
       sx={{
         backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
@@ -271,6 +314,7 @@ const Tables = () => {
       }}
     >
       <DashboardNavbar />
+
       <ArgonBox py={3} className={classes.card}>
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
@@ -318,11 +362,10 @@ const Tables = () => {
 
             <table>
               <thead>
-              <tr >
+              <tr>
                 <th>Employee Name</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Comment</th>
+                <th style={{ textAlign: "center" }}>Period</th>
+                <th style={{ textAlign: "center" }}>Days</th>
                 <th style={{ textAlign: "center" }}>Status</th>
                 <th style={{ textAlign: "center" }}>Actions</th>
               </tr>
@@ -331,9 +374,13 @@ const Tables = () => {
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
                   <td>{userMap[request.userId]}</td>
-                  <td>{new Date(request.startDate).toLocaleDateString()}</td>
-                  <td>{new Date(request.endDate).toLocaleDateString()}</td>
-                  <td>{request.comment}</td>
+                  <td style={{ textAlign: "center" ,  }}>
+                    <span style={{ margin: "0 10px", }}>From</span>
+                    <span style={{fontWeight: "bold"}}>{format(new Date(request.startDate), 'dd-MM-yyyy')}</span>
+                    <span style={{ margin: "0 10px" }}>To</span>
+                    <span style={{fontWeight: "bold"}}>{format(new Date(request.endDate), 'dd-MM-yyyy')}</span>
+                  </td>
+                  <td style={{ textAlign: "center" }}>{differenceInDays(parseISO(request.endDate), parseISO(request.startDate))+1}</td>
                   <td style={{ textAlign: "center" }}>
                       <span
                         className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}
@@ -342,6 +389,13 @@ const Tables = () => {
                       </span>
                   </td>
                   <td style={{ textAlign: "center" }}>
+                    <IconButton
+                      aria-label="View"
+                      onClick={() => handleViewDetails(request)}
+                    >
+                      <Visibility />
+                    </IconButton>
+
                     <IconButton
                       onClick={() => handleUpdate(request.requestId)}
                       color="primary"
@@ -356,6 +410,7 @@ const Tables = () => {
                     >
                       <Delete />
                     </IconButton>
+
                   </td>
                 </tr>
               ))}
@@ -388,22 +443,18 @@ const Tables = () => {
               </Grid>
               <Grid item xs={12} sm={2}>
                 <div className={classes.statsItem}>
-                  <Typography variant="h6">Pending</Typography>
-                  <Typography variant="body1">{stats.pending}</Typography>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={2}>
-                <div className={classes.statsItem}>
                   <Typography variant="h6">Rejected</Typography>
                   <Typography variant="body1">{stats.rejected}</Typography>
                 </div>
               </Grid>
+
               <Grid item xs={12} sm={2}>
                 <div className={classes.statsItem}>
-                  <Typography variant="h6">Updated</Typography>
-                  <Typography variant="body1">{stats.updated}</Typography>
+                  <Typography variant="h6">Pending</Typography>
+                  <Typography variant="body1">{stats.pending}</Typography>
                 </div>
               </Grid>
+
             </Grid>
           </ArgonBox>
 
@@ -478,6 +529,70 @@ const Tables = () => {
           </ArgonBox>
         </Card>
       </ArgonBox>
+      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
+        <DialogTitle className={classes.dialogTitle} style={{ color: "white" }}>Request Details</DialogTitle>
+        <DialogContent dividers >
+          {selectedRequest && (
+            <List >
+              <ListItem className={classes.listItem} >
+                <ListItemText style={{ textAlign: "center" }}
+                  primary="Employee Name"
+                  secondary={userMap[selectedRequest.userId]}
+                />
+              </ListItem >
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Start Date"
+                  secondary={format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="End Date"
+                  secondary={format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Duration"
+                  secondary={`${differenceInDays(parseISO(selectedRequest.endDate), parseISO(selectedRequest.startDate)) + 1} days`}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Employee Comment"
+                  secondary={selectedRequest.comment || 'No comment'}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Update Reason"
+                  secondary={selectedRequest.note || 'No updates'}
+                />
+              </ListItem>
+              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
+                <ListItemText
+                  primary="Status"
+                  secondary={
+                    <Typography
+                      className={
+                        selectedRequest.status === 1 ? classes.approved : selectedRequest.status === 2 ? classes.rejected : ''
+                      }
+                    >
+                      {Status[selectedRequest.status]}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Footer />
     </DashboardLayout>
   );

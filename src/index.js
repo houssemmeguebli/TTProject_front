@@ -11,6 +11,7 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 
 // react-perfect-scrollbar styles
 import "react-perfect-scrollbar/dist/css/styles.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const container = document.getElementById("root");
 const root = createRoot(container);

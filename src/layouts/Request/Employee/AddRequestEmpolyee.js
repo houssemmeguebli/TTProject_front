@@ -25,36 +25,15 @@ const requestService = new RequestService();
 const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
-const Index = ({ onSubmit }) => {
+const AddRequestEmp = ({ onSubmit }) => {
   const [request, setRequest] = useState({
     startDate: '',
     endDate: '',
     comment: '',
-    userId: '',
+    userId: 6,
     urgent: false, // New feature: Urgent request
   });
-
-  const [users, setUsers] = useState([]);
   const navigate = useNavigate();
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await employeeService.getAllEmployees();
-        console.log('Fetched users:', response);
-
-        // Check if the response contains the $values array
-        if (response.$values) {
-          setUsers(response.$values);
-        } else {
-          console.error('Unexpected response structure:', response);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,12 +43,7 @@ const Index = ({ onSubmit }) => {
     }));
   };
 
-  const handleUserChange = (event, value) => {
-    setRequest(prevRequest => ({
-      ...prevRequest,
-      userId: value ? value.userId : '',
-    }));
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,11 +63,11 @@ const Index = ({ onSubmit }) => {
         startDate: '',
         endDate: '',
         comment: '',
-        userId: '',
+        userId: 6,
       });
 
       onSubmit();
-      navigate('/tables');
+      navigate('/RequestEmployee');
     } catch (error) {
       console.error('Error creating request:', error.response ? error.response.data : error.message);
       Swal.fire({
@@ -152,7 +126,8 @@ const Index = ({ onSubmit }) => {
                           width: '100% !important',
                         },
                       },
-                    }}                  />
+                    }}
+                  />
 
                 </div>
               </Grid>
@@ -202,7 +177,7 @@ const Index = ({ onSubmit }) => {
                     multiline
                     rows={2}
 
-                  className="textField"
+                    className="textField"
                     sx={{
                       marginTop: 1,
                       width: "100%",
@@ -220,39 +195,11 @@ const Index = ({ onSubmit }) => {
                           width: '100% !important',
                         },
                       },
-                    }}                  />
+                    }}
+                  />
 
                 </div>
               </Grid>
-              <Grid item xs={12}>
-                <Typography className="label">Select Employee</Typography>
-                <Autocomplete
-                  id="user-select"
-                  options={users}
-                  getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
-                  onChange={handleUserChange}
-                  renderInput={(params) => <TextField {...params} variant="outlined" fullWidth />}
-                  sx={{
-                    marginTop: 1,
-                    width: "100%",
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: theme => theme.palette.primary.main,
-                      },
-                      '&:hover fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '& .MuiInputBase-input': {
-                        width: '100% !important',
-                      },
-                    },
-                  }}
-                />
-              </Grid>
-
               <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
                 <Button
                   type="submit"
@@ -322,12 +269,13 @@ const Index = ({ onSubmit }) => {
           </div>
         </Paper>
       </Container>
+
     </DashboardLayout>
   );
 };
 
-Index.propTypes = {
+AddRequestEmp.propTypes = {
   onSubmit: PropTypes.func.isRequired
 };
 
-export default Index;
+export default AddRequestEmp;

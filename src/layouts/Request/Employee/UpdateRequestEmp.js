@@ -6,9 +6,6 @@ import {
   Container,
   Paper,
   Typography,
-  MenuItem,
-  Select,
-  FormControl, OutlinedInput, InputAdornment, InputLabel,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
 import RequestService from '../../../_services/RequestService';
@@ -46,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   textField: {
-    width :"100%",
+    width: "100%",
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: theme.palette.primary.main,
@@ -84,24 +81,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const UpdateRequest = () => {
+const UpdateRequestEmp = () => {
   const classes = useStyles();
   const { requestId } = useParams();
   const navigate = useNavigate();
   const [request, setRequest] = useState({
-    status: '',
+    comment: '',
     startDate: '',
     endDate: '',
-    note: '', // Add note field to request state
   });
 
   const [originalRequest, setOriginalRequest] = useState({});
-  const [isNoteRequired, setIsNoteRequired] = useState(false);
-
-  const statuses = [
-    { value: 1, label: 'Approved' },
-    { value: 3, label: 'Rejected' },
-  ];
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -111,7 +101,7 @@ const UpdateRequest = () => {
           ...response,
           startDate: response.startDate.split('T')[0],
           endDate: response.endDate.split('T')[0],
-          note: response.note || '', // Initialize note from the response
+          comment: response.comment || '', // Initialize comment from the response
         });
         setOriginalRequest({
           ...response,
@@ -127,25 +117,6 @@ const UpdateRequest = () => {
       fetchRequest();
     }
   }, [requestId]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setRequest((prevRequest) => ({
-      ...prevRequest,
-      [name]: value,
-    }));
-
-    // Check if startDate or endDate has been changed to set note required
-    if (name === "startDate" || name === "endDate") {
-      setIsNoteRequired(true);
-      const oldStartDate = originalRequest.startDate;
-      const oldEndDate = originalRequest.endDate;
-      setRequest((prev) => ({
-        ...prev,
-        note: `Old Start Date: ${oldStartDate}, Old End Date: ${oldEndDate}. ${prev.note}`,
-      }));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -163,7 +134,7 @@ const UpdateRequest = () => {
       try {
         await requestService.updateRequest(requestId, request);
         Swal.fire("Saved!", "", "success");
-        navigate('/requests');
+        navigate('/RequestEmployee');
       } catch (error) {
         console.error(`Error updating request with ID ${requestId}:`, error);
         if (error.response && error.response.data) {
@@ -175,12 +146,6 @@ const UpdateRequest = () => {
       Swal.fire("Changes are not saved", "", "info");
     }
   };
-
-  useEffect(() => {
-    const isStartDateChanged = request.startDate !== originalRequest.startDate;
-    const isEndDateChanged = request.endDate !== originalRequest.endDate;
-    setIsNoteRequired(isStartDateChanged || isEndDateChanged);
-  }, [request.startDate, request.endDate, originalRequest]);
 
   return (
     <DashboardLayout
@@ -194,20 +159,19 @@ const UpdateRequest = () => {
       }}
     >
       <DashboardNavbar />
-
       <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh', marginTop: '8%' }}>
         <Paper className={classes.paper} elevation={3}>
           <Typography variant="h4" gutterBottom className={classes.title}>
             Update Request
           </Typography>
-          <form className={classes.form} onSubmit={handleSubmit} >
+          <form className={classes.form} onSubmit={handleSubmit}>
             <div>
               <Typography className={classes.label}>Start Date</Typography>
               <TextField
                 name="startDate"
                 type="date"
                 value={request.startDate}
-                onChange={handleChange}
+                onChange={(e) => setRequest({ ...request, startDate: e.target.value })}
                 fullWidth
                 className={classes.textField}
                 InputLabelProps={{
@@ -238,7 +202,7 @@ const UpdateRequest = () => {
                 name="endDate"
                 type="date"
                 value={request.endDate}
-                onChange={handleChange}
+                onChange={(e) => setRequest({ ...request, endDate: e.target.value })}
                 fullWidth
                 className={classes.textField}
                 InputLabelProps={{
@@ -264,71 +228,17 @@ const UpdateRequest = () => {
               />
             </div>
             <div>
-              <Typography className={classes.label}>Status</Typography>
-              <FormControl    sx={{
-                width: "100%",
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.primary.main,
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '& .MuiInputBase-input': {
-                    width: '100% !important',
-                  },
-                },
-              }}>
-                <Select
-
-                  name="status"
-                  value={request.status}
-                  onChange={handleChange}
-                  className={classes.textField}
-                  sx={{
-                    width: "100%",
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: theme => theme.palette.primary.main,
-                      },
-                      '&:hover fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '& .MuiInputBase-input': {
-                        width: '100% !important',
-                      },
-                    },
-                  }}
-                >
-                  {statuses.map((status) => (
-                    <MenuItem key={status.value} value={status.value}
-                    >
-                      {status.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-            <div >
-              <Typography className={classes.label}>Note</Typography>
+              <Typography className={classes.label}>Comment</Typography>
               <TextField
-                name="note"
+                name="comment"
                 type="text"
-                value={request.note}
-                onChange={handleChange}
-                required={isNoteRequired}
-                placeholder={isNoteRequired ? "If you change, explain here" : ""}
+                value={request.comment}
+                onChange={(e) => setRequest({ ...request, comment: e.target.value })}
                 className={classes.textField}
                 multiline
-                rows={4} // Adjust height as needed
+                rows={2}
                 fullWidth
-                variant="outlined" // Ensure outlined style
+                variant="outlined"
                 sx={{
                   width: "100%",
                   '& .MuiOutlinedInput-root': {
@@ -347,10 +257,7 @@ const UpdateRequest = () => {
                   },
                 }}
               />
-
             </div>
-
-
             <Button type="submit" variant="contained" className={classes.button}>
               Update
             </Button>
@@ -369,4 +276,4 @@ const UpdateRequest = () => {
   );
 };
 
-export default UpdateRequest;
+export default UpdateRequestEmp;
