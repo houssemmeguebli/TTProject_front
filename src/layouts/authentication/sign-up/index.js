@@ -11,13 +11,11 @@ import ArgonButton from "components/ArgonButton";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import Socials from "layouts/authentication/components/Socials";
 import Separator from "layouts/authentication/components/Separator";
-
 import Swal from "sweetalert2";
-import projectManagerService from "../../../_services/ProjectManagerService";
-import EmployeeService from "../../../_services/EmployeeService";
+import AuthService from "../../../_services/AuthService";  // Modifié pour utiliser AuthService
 
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg";
-const employeeService = new EmployeeService();
+const autherService = new AuthService();
 function Cover() {
   const [role, setRole] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -26,31 +24,34 @@ function Cover() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
-  const [position, setPosition] = useState("");
-  const [projectName, setProjectName] = useState("");
 
+  // Define roles with both value and label
+  const roles = [
+    { value: 0, label: "Project Manager" },
+    { value: 1, label: "Employee" },
+  ];
+
+  // Handle role selection from Autocomplete
   const handleRoleChange = (event, value) => {
-    setRole(value);
+    setRole(value ? value.value : "");  // Store the numerical value of the selected role
   };
 
+  // Handle input changes
   const handleInputChange = (setter) => (event) => {
     setter(event.target.value);
   };
 
+  // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Basic validation to ensure required fields are not empty
-    if (!firstName || !lastName || !email || !password || !phone || !department || !role) {
+    // Basic validation
+    if (!firstName || !lastName || !email || !password || !phone || !department || role === "") {
       Swal.fire("Error!", "Please fill in all required fields.", "error");
       return;
     }
 
-    if (role === "Project Manager" && !projectName) {
-      Swal.fire("Error!", "Project Name is required for Project Managers.", "error");
-      return;
-    }
-
+    // Prepare user object based on the role
     const user = {
       firstName,
       lastName,
@@ -58,26 +59,17 @@ function Cover() {
       password,
       phone,
       department,
-      role,  // Ensure role is properly sent
+      role,
     };
 
     try {
-      if (role === "Employee") {
-        user.position = position;
-        await employeeService.createEmployee(user);
-        Swal.fire("Success!", "Employee registered successfully!", "success");
-      } else if (role === "Project Manager") {
-        user.projectName = projectName;
-        await projectManagerService.createProjectManager(user);
-        Swal.fire("Success!", "Project Manager registered successfully!", "success");
-      }
+      await autherService.register(user);  // Call the AuthService to register
+      Swal.fire("Success!", "User registered successfully!", "success");
     } catch (error) {
-      console.error("Error creating user:", error.response || error);
+      console.error("Error creating user:", error);
       Swal.fire("Error!", "Error registering user.", "error");
     }
   };
-
-  const roles = ["Employee", "Project Manager"];
 
   return (
     <CoverLayout
@@ -122,21 +114,11 @@ function Cover() {
             <ArgonBox mb={2}>
               <Autocomplete
                 options={roles}
-                value={role}
+                value={roles.find((r) => r.value === role) || null}
                 onChange={handleRoleChange}
                 renderInput={(params) => <TextField {...params} label="Role" />}
               />
             </ArgonBox>
-            {role === "Employee" && (
-              <ArgonBox mb={2}>
-                <ArgonInput placeholder="Position" value={position} onChange={handleInputChange(setPosition)} />
-              </ArgonBox>
-            )}
-            {role === "Project Manager" && (
-              <ArgonBox mb={2}>
-                <ArgonInput placeholder="Project Name" value={projectName} onChange={handleInputChange(setProjectName)} />
-              </ArgonBox>
-            )}
             <ArgonBox display="flex" alignItems="center">
               <Checkbox defaultChecked />
               <ArgonTypography
