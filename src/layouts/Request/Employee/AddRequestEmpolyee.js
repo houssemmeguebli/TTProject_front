@@ -20,18 +20,20 @@ import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout"
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
 import EmployeeService from "../../../_services/EmployeeService";
+import AuthService from "../../../_services/AuthService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
+const authService = new AuthService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
+const currentUser = authService.getCurrentUser();
 
 const AddRequestEmp = ({ onSubmit }) => {
   const [request, setRequest] = useState({
     startDate: '',
     endDate: '',
     comment: '',
-    userId: 6,
-    urgent: false, // New feature: Urgent request
+    userId: currentUser.id,
   });
   const navigate = useNavigate();
 
@@ -44,12 +46,12 @@ const AddRequestEmp = ({ onSubmit }) => {
   };
 
 
-
+  const userRole=1;
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       console.log('Submitting request:', request);
-      await requestService.createRequest(request);
+      await requestService.createRequest(request,userRole);
 
       // Show success message
       Swal.fire({
@@ -63,7 +65,8 @@ const AddRequestEmp = ({ onSubmit }) => {
         startDate: '',
         endDate: '',
         comment: '',
-        userId: 6,
+        userId: currentUser.id,
+
       });
 
       onSubmit();

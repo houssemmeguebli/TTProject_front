@@ -45,6 +45,14 @@ class EmployeeService {
       throw error;
     }
   }
+  async deleteEmployee(employeeId) {
+    try {
+      await axios.delete(`${this.baseUrl}/${employeeId}`);
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      throw error;
+    }
+  }
   async getRequestsByEmployeeId  (employeeId)  {
     try {
       const response = await axios.get(`${this.baseUrl}/${employeeId}/requests`);

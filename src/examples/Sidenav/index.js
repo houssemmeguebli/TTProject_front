@@ -1,31 +1,19 @@
-import { useEffect, useState } from "react";
-
-// react-router-dom components
+import { useEffect } from "react";
 import { useLocation, NavLink } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
-
-// @mui material components
 import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
-
-// Argon Dashboard 2 MUI components
 import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
-
-// Argon Dashboard 2 MUI example components
 import SidenavItem from "examples/Sidenav/SidenavItem";
 import SidenavFooter from "examples/Sidenav/SidenavFooter";
-
-// Custom styles for the Sidenav
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
-
-// Argon Dashboard 2 MUI context
 import { useArgonController, setMiniSidenav } from "context";
+import { useContext } from "react";
+import { AuthContext } from "../../_services/AuthContext.js"; // Import useContext from React
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useArgonController();
@@ -33,41 +21,38 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const location = useLocation();
   const { pathname } = location;
   const itemName = pathname.split("/").slice(1)[0];
+  const { user } = useContext(AuthContext); // Use the AuthContext
+  const userRole = user ? user.role : null; // Extract user role
 
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
   useEffect(() => {
-    // A function that sets the mini state of the sidenav.
     function handleMiniSidenav() {
       setMiniSidenav(dispatch, window.innerWidth < 1200);
     }
 
-    /** 
-     The event listener that's calling the handleMiniSidenav function when resizing the window.
-    */
     window.addEventListener("resize", handleMiniSidenav);
-
-    // Call the handleMiniSidenav function to set the state with the initial value.
     handleMiniSidenav();
 
-    // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleMiniSidenav);
   }, [dispatch, location]);
 
-  // Render all the routes from the routes.js (All the visible items on the Sidenav)
-  const renderRoutes = routes.map(({ type, name, icon, title, key, href, route }) => {
+  // Filter routes based on user role
+  const filteredRoutes = routes.filter((route) => {
+    if (route.roles && route.roles.length > 0) {
+      return route.roles.includes(userRole);
+    }
+    return true;
+  });
+
+  const renderRoutes = filteredRoutes.map(({ type, name, icon, title, key, href, route }) => {
     let returnValue;
 
     if (type === "route") {
       if (href) {
         returnValue = (
           <Link href={href} key={key} target="_blank" rel="noreferrer">
-            <SidenavItem
-              name={name}
-              icon={icon}
-              active={key === itemName}
-              noCollapse={noCollapse}
-            />
+            <SidenavItem name={name} icon={icon} active={key === itemName} />
           </Link>
         );
       } else {
@@ -147,13 +132,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   );
 }
 
-// Setting default values for the props of Sidenav
 Sidenav.defaultProps = {
   color: "info",
   brand: "",
 };
 
-// Typechecking props for the Sidenav
 Sidenav.propTypes = {
   color: PropTypes.oneOf(["primary", "secondary", "info", "success", "warning", "error", "dark"]),
   brand: PropTypes.string,

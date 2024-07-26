@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode";
 
 const API_BASE_URL = 'https://localhost:7157/api/Auth';
 
@@ -42,6 +43,49 @@ class AuthService {
       throw error;
     }
   }
+  getCurrentUser() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decode the token
+        const decodedToken = jwtDecode(token);
+        console.log('Decoded Token:', decodedToken); // Log the decoded token for debugging
+
+        // Extract user information
+        return {
+          id: decodedToken.id,
+          role: decodedToken.role,
+          email: decodedToken.email,
+          firstName: decodedToken.firstName || '',
+          lastName: decodedToken.lastName || '',
+          department: decodedToken.department || ''
+        };
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        return null;
+      }
+    }
+    return null;
+  }
+
+
+async logout() {
+    try {
+      const response = await axios.post(`${this.baseUrl}/logout`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      localStorage.removeItem('token');
+      return response.data;
+    } catch (error) {
+      console.error('Error logging out:', error.response ? error.response.data : error.message);
+      throw error;
+    }
+  }
+
+
 }
 
 export default AuthService;

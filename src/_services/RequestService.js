@@ -27,17 +27,18 @@ class RequestService {
             throw error;
         }
     }
-
-    async createRequest(request) {
+    async createRequest(request, userRole) {
         try {
-            const response = await axios.post(this.baseUrl, request);
+            const response = await axios.post(`${this.baseUrl}/${userRole}`, request, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
             return response.data;
         } catch (error) {
-            console.error('Error creating request:', error);
             throw error;
         }
     }
-
     async deleteRequest(requestId) {
         try {
             await axios.delete(`${this.baseUrl}/${requestId}`);

@@ -1,18 +1,63 @@
-
-// Argon Dashboard 2 MUI layouts
 import Dashboard from "layouts/dashboard";
-import Tables from "./layouts/Request";
-import Billing from "layouts/billing";
 import Profile from "layouts/profile";
-import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-
-// Argon Dashboard 2 MUI components
 import ArgonBox from "components/ArgonBox";
-import Index from "./layouts/Request/addRequest";
 import React from "react";
 import Calendar from "./Calendar";
 import Request from "./layouts/Request";
+
+import Icon from "@mui/material/Icon";
+import AuthService from "./_services/AuthService";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import EmployeeProfiles from "./layouts/EmployeeProfiles";
+import Empolyee from "./layouts/Request/Employee"; // Import the AuthService
+
+const authService = new AuthService();
+const Logout = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out of your account.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, log out!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await authService.logout();
+        navigate("/authentication/sign-in");
+        Swal.fire(
+          'Logged Out!',
+          'You have been logged out successfully.',
+          'success'
+        );
+      } catch (error) {
+        console.error('Error logging out:', error);
+        Swal.fire(
+          'Error!',
+          'There was an error logging out. Please try again.',
+          'error'
+        );
+      }
+    } else {
+      navigate("/dashboard"); // Navigate to dashboard if the user cancels the logout
+    }
+  };
+
+  React.useEffect(() => {
+    handleLogout();
+  }, []);
+
+  // Return nothing as the component's effect handles everything
+  return null;
+};
 
 
 
@@ -24,6 +69,7 @@ const routes = [
     route: "/dashboard",
     icon: <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-tv-2" />,
     component: <Dashboard />,
+    roles: ["ProjectManager","Employee"],
   },
   {
     type: "route",
@@ -34,6 +80,20 @@ const routes = [
       <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-paper-diploma" />
     ),
     component: <Request />,
+    roles: ["ProjectManager"],
+
+  },
+  {
+    type: "route",
+    name: "Liste of Requests",
+    key: "RequestEmployee",
+    route: "/RequestEmployee",
+    icon: (
+      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-paper-diploma" />
+    ),
+    component: <Empolyee />,
+    roles: ["Employee"],
+
   },
   {
     type: "route",
@@ -44,43 +104,47 @@ const routes = [
       <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
     ),
     component: <Calendar  />,
-  },
-  {
-    type: "route",
-    name: "Billing",
-    key: "billing",
-    route: "/billing",
-    icon: <ArgonBox component="i" color="success" fontSize="14px" className="ni ni-credit-card" />,
-    component: <Billing />,
-  },
+    roles: ["ProjectManager","Employee"],
 
-
+  },
   { type: "title", title: "Account Pages", key: "account-pages" },
   {
     type: "route",
-    name: "Profile",
+    name: "My Profile",
     key: "profile",
     route: "/profile",
     icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
     component: <Profile />,
+    roles: ["ProjectManager","Employee"],
+
   },
   {
     type: "route",
-    name: "Sign In",
-    key: "sign-in",
-    route: "/authentication/sign-in",
-    icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-single-copy-04" />
-    ),
-    component: <SignIn />,
+    name: "Employees Profiles",
+    key: "Employees Profiles",
+    route: "/EmployeeProfiles",
+    icon: <ArgonBox component="i" color="info" fontSize="14px" className="ni ni-collection" />,
+    component: <EmployeeProfiles />,
+    roles: ["ProjectManager"],
   },
   {
     type: "route",
-    name: "Sign Up",
+    name: "Add New Empolyee",
     key: "sign-up",
     route: "/authentication/sign-up",
     icon: <ArgonBox component="i" color="info" fontSize="14px" className="ni ni-collection" />,
     component: <SignUp />,
+    roles: ["ProjectManager"],
+  },
+  {
+    type: "route",
+    name: "Logout",
+    key: "logout",
+    route: "/logout",
+    icon: <Icon color="error" fontSize="14px" className="ni ni-button-power" />,
+    component: <Logout />,
+    roles: ["ProjectManager","Employee"],
+
   },
 ];
 

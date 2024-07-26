@@ -1,72 +1,34 @@
-/**
-=========================================================
-* Argon Dashboard 2 MUI - v3.0.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-material-ui
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import { useState, useEffect } from "react";
-
-// react-router components
-import { useLocation, Link } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
-import PropTypes from "prop-types";
-
-// @mui core components
+import { useEffect, useState } from "react";
+import { Breadcrumbs, IconButton, Menu, Toolbar } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
-
-// Argon Dashboard 2 MUI components
-import ArgonBox from "components/ArgonBox";
-import ArgonTypography from "components/ArgonTypography";
-import ArgonInput from "components/ArgonInput";
-
-// Argon Dashboard 2 MUI example components
-import Breadcrumbs from "examples/Breadcrumbs";
-import NotificationItem from "examples/Items/NotificationItem";
-
-// Custom styles for DashboardNavbar
-import {
-  navbar,
-  navbarContainer,
-  navbarRow,
-  navbarIconButton,
-  navbarDesktopMenu,
-  navbarMobileMenu,
-} from "examples/Navbars/DashboardNavbar/styles";
-
-// Argon Dashboard 2 MUI context
-import {
-  useArgonController,
-  setTransparentNavbar,
-  setMiniSidenav,
-  setOpenConfigurator,
-} from "context";
-
-// Images
+import ArgonBox from "../../../components/ArgonBox";
+import ArgonTypography from "../../../components/ArgonTypography";
+import NotificationItem from "../../Items/NotificationItem";
+import { navbar, navbarContainer, navbarDesktopMenu, navbarIconButton, navbarRow } from "./styles";
+import { setMiniSidenav, setOpenConfigurator, setTransparentNavbar, useArgonController } from "../../../context";
+import { Link, useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
 import team2 from "assets/images/team-2.jpg";
 import logoSpotify from "assets/images/small-logos/logo-spotify.svg";
+import AuthService from "../../../_services/AuthService";
+
+const authService = new AuthService();
 
 function DashboardNavbar({ absolute, light, isMini }) {
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useArgonController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator } = controller;
   const [openMenu, setOpenMenu] = useState(false);
+  const [user, setUser] = useState(null);
   const route = useLocation().pathname.split("/").slice(1);
 
   useEffect(() => {
+    // Fetch user information
+    const currentUser = authService.getCurrentUser();
+    console.log("Current User:", currentUser); // Log user information
+    setUser(currentUser);
+
     // Setting the navbar type
     if (fixedNavbar) {
       setNavbarType("sticky");
@@ -79,10 +41,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
     }
 
-    /** 
-     The event listener that's calling the handleTransparentNavbar function when 
-     scrolling the window.
-    */
+    // The event listener that's calling the handleTransparentNavbar function when scrolling the window.
     window.addEventListener("scroll", handleTransparentNavbar);
 
     // Call the handleTransparentNavbar function to set the state with the initial value.
@@ -160,51 +119,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
         </ArgonBox>
         {isMini ? null : (
           <ArgonBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <ArgonBox pr={1}>
-              <ArgonInput
-                placeholder="Type here..."
-                startAdornment={
-                  <Icon fontSize="small" style={{ marginRight: "6px" }}>
-                    search
-                  </Icon>
-                }
-              />
-            </ArgonBox>
             <ArgonBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in/basic">
-                <IconButton sx={navbarIconButton} size="small">
-                  <Icon
-                    sx={({ palette: { dark, white } }) => ({
-                      color: light && transparentNavbar ? white.main : dark.main,
-                    })}
-                  >
-                    account_circle
-                  </Icon>
-                  <ArgonTypography
-                    variant="button"
-                    fontWeight="medium"
-                    color={light && transparentNavbar ? "white" : "dark"}
-                  >
-                    Sign in
-                  </ArgonTypography>
-                </IconButton>
-              </Link>
-              <IconButton
-                size="small"
-                color={light && transparentNavbar ? "white" : "dark"}
-                sx={navbarMobileMenu}
-                onClick={handleMiniSidenav}
-              >
-                <Icon>{miniSidenav ? "menu_open" : "menu"}</Icon>
-              </IconButton>
-              <IconButton
-                size="small"
-                color={light && transparentNavbar ? "white" : "dark"}
-                sx={navbarIconButton}
-                onClick={handleConfiguratorOpen}
-              >
-                <Icon>settings</Icon>
-              </IconButton>
               <IconButton
                 size="small"
                 color={light && transparentNavbar ? "white" : "dark"}
@@ -218,6 +133,33 @@ function DashboardNavbar({ absolute, light, isMini }) {
               </IconButton>
               {renderMenu()}
             </ArgonBox>
+            <Link to="/profile" >
+              <ArgonBox
+                display="flex"
+                alignItems="center"
+                color={light ? "white" : "dark"}
+                sx={navbarIconButton}
+              >
+
+                <Icon sx={{ fontSize: 40, color: 'inherit', mr: 1 }}>person</Icon> {/* User Icon */}
+                <ArgonTypography variant="h6" color="inherit" sx={{ fontWeight: 'bold' }}>
+                  {user?.firstName} {user?.lastName}
+                </ArgonTypography>
+                <ArgonTypography variant="body2" color="inherit" sx={{ ml: 1 }}>
+                  ({user?.department})
+                </ArgonTypography>
+              </ArgonBox>
+            </Link>
+
+
+            <IconButton
+              size="small"
+              color={light && transparentNavbar ? "white" : "dark"}
+              sx={navbarIconButton}
+              onClick={handleConfiguratorOpen}
+            >
+              <Icon>settings</Icon>
+            </IconButton>
           </ArgonBox>
         )}
       </Toolbar>

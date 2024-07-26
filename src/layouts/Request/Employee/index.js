@@ -13,7 +13,6 @@ import ArgonBox from "../../../components/ArgonBox";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography } from "@mui/material";
-import requestService from "../../../_services/RequestService";
 import { differenceInDays, format, parseISO } from "date-fns";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -22,9 +21,13 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import DialogActions from "@mui/material/DialogActions";
+import AuthService from "../../../_services/AuthService";
+import RequestService from "../../../_services/RequestService";
 
 const employeeService = new EmployeeService();
+const authService = new AuthService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
+const requestService = new RequestService();
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -56,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
         transition: 'background-color 0.3s',
       },
       '& th': {
-        backgroundColor: theme.palette.primary.main,
+        backgroundColor: '#1976d2',
         color: '#fff',
         fontWeight: 'bold',
       },
@@ -148,10 +151,11 @@ const Empolyee = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
-
+  const currentUser = authService.getCurrentUser();
+  console.log("id :",currentUser.id);
   const fetchRequests = async () => {
     try {
-      const employeeId = 6; // Replace with dynamic value as needed
+      const employeeId = currentUser.id;
       const result = await employeeService.getRequestsByEmployeeId(employeeId);
 
       if (result && Array.isArray(result.$values)) {
@@ -252,6 +256,9 @@ const Empolyee = () => {
   const indexOfFirstRequest = indexOfLastRequest - rowsPerPage;
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
 
+
+
+
   return (
     <DashboardLayout
       sx={{
@@ -276,6 +283,25 @@ const Empolyee = () => {
               </Button>
             </Link>
           </ArgonBox>
+          {currentRequests.length === 0 ? (
+            <div style={{ textAlign: "center", marginTop: "50px", padding: "30px", backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+              <Typography variant="h5" style={{ fontWeight: 500, color: "#333" }}>
+                No Requests Available
+              </Typography>
+              <Typography variant="body1" style={{ marginTop: "15px", color: "#666" }}>
+                There are currently no requests to display. Please check back later or create a new request as needed.
+              </Typography>
+              <Typography variant="body2" style={{ marginTop: "10px", color: "#999" }}>
+                You can submit new requests at any time using the form below.
+              </Typography>
+              <Link to="/AddRequestEmp" style={{ textDecoration: 'none' }}>
+              <Button variant="contained" color="primary" style={{ marginTop: "20px", borderRadius: "8px" }}>
+                Create New Request
+              </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
           <ArgonBox className={classes.tableContainer}>
             <ArgonBox className="search-input-container" mb={2}>
               <TextField
@@ -305,6 +331,8 @@ const Empolyee = () => {
                 }}
               />
             </ArgonBox>
+
+
             <table>
               <thead>
               <tr>
@@ -352,6 +380,7 @@ const Empolyee = () => {
               ))}
               </tbody>
             </table>
+
             <Container className={classes.pagination}>
               <Pagination
                 count={Math.ceil(filteredRequests.length / rowsPerPage)}
@@ -391,6 +420,9 @@ const Empolyee = () => {
               </Grid>
             </ArgonBox>
           </ArgonBox>
+            </>
+          )}
+
         </Card>
       </ArgonBox>
       <Footer />

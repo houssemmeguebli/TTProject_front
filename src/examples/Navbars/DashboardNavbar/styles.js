@@ -22,6 +22,7 @@ function navbar(theme, ownerState) {
   const { borderRadius } = borders;
 
   return {
+
     boxShadow: transparentNavbar || absolute ? "none" : navbarBoxShadow,
     backgroundColor: transparentNavbar || absolute ? `${transparent.main} !important` : white.main,
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Ajout du Link pour la redirection
+import { useNavigate, Link } from "react-router-dom";
 import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
 import ArgonInput from "components/ArgonInput";
@@ -7,7 +7,7 @@ import ArgonButton from "components/ArgonButton";
 import IllustrationLayout from "layouts/authentication/components/IllustrationLayout";
 import Swal from "sweetalert2";
 import { Switch } from "@mui/material";
-import AuthService from "../../../_services/AuthService"; // Assure-toi que ce chemin est correct
+import AuthService from "../../../_services/AuthService";
 
 const autherService = new AuthService();
 
@@ -26,7 +26,7 @@ function SignIn() {
     event.preventDefault();
     try {
       await autherService.login({ email, password });
-      navigate("/dashboard"); // Redirection après connexion réussie
+      navigate("/Calendar");
       Swal.fire("Success!", "Login successfully!", "success");
     } catch (error) {
       Swal.fire("Error!", "Failed to login. Please check your credentials.", "error");
@@ -78,20 +78,6 @@ function SignIn() {
           <ArgonButton type="submit" color="info" size="large" fullWidth>
             Sign In
           </ArgonButton>
-        </ArgonBox>
-        <ArgonBox mt={3} textAlign="center">
-          <ArgonTypography variant="button" color="text" fontWeight="regular">
-            Don&apos;t have an account?{" "}
-            <ArgonTypography
-              component={Link}
-              to="/authentication/sign-up"
-              variant="button"
-              color="info"
-              fontWeight="medium"
-            >
-              Sign up
-            </ArgonTypography>
-          </ArgonTypography>
         </ArgonBox>
       </ArgonBox>
     </IllustrationLayout>

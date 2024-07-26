@@ -67,15 +67,15 @@ const Index = ({ onSubmit }) => {
   const handleUserChange = (event, value) => {
     setRequest(prevRequest => ({
       ...prevRequest,
-      userId: value ? value.userId : '',
+      userId: value ? value.id : '',
     }));
   };
-
+const userRole=0;
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       console.log('Submitting request:', request);
-      await requestService.createRequest(request);
+      await requestService.createRequest(request,userRole);
 
       // Show success message
       Swal.fire({
@@ -202,7 +202,7 @@ const Index = ({ onSubmit }) => {
                     multiline
                     rows={2}
 
-                  className="textField"
+                    className="textField"
                     sx={{
                       marginTop: 1,
                       width: "100%",

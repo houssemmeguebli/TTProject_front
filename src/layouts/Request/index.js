@@ -32,9 +32,10 @@ import List from "@mui/material/List";
 const requestService = new RequestService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
+
 const useStyles = makeStyles((theme) => ({
   dialogTitle: {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: '#1976d2',
     color: 'white',
     textAlign: 'center',
     padding: theme.spacing(2),
@@ -89,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
         transition: 'background-color 0.3s',
       },
       '& th': {
-        backgroundColor: theme.palette.primary.main,
+        backgroundColor: '#1976d2',
         color: '#fff',
         fontWeight: 'bold',
       },
@@ -182,7 +183,7 @@ const Status = {
   3: 'Rejected',
 };
 
-const Tables = () => {
+const Index = () => {
   const classes = useStyles();
   const [requestsData, setRequestsData] = useState([]);
   const [userMap, setUserMap] = useState({});
@@ -330,6 +331,36 @@ const Tables = () => {
               </Button>
             </Link>
           </ArgonBox>
+          {currentRequests.length === 0 ? (
+            <div style={{
+              textAlign: "center",
+              marginTop: "50px",
+              padding: "30px",
+              backgroundColor: "#ffffff",
+              borderRadius: "12px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              maxWidth: "700px",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }}>
+              <Typography variant="h5" style={{ fontWeight: 600, color: "#333" }}>
+                No Pending Requests
+              </Typography>
+              <Typography variant="body1" style={{ marginTop: "15px", color: "#666" }}>
+                At this moment, there are no pending requests awaiting your review.
+                Please check back periodically for new requests.
+              </Typography>
+              <Typography variant="body2" style={{ marginTop: "10px", color: "#999" }}>
+                You can always add new requests or update existing ones through the provided forms.
+              </Typography>
+              <Link to="/add" style={{ textDecoration: 'none' }}>
+              <Button variant="contained" color="primary" style={{ marginTop: "20px", borderRadius: "8px" }}>
+                Add New Request
+              </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
           <ArgonBox className={classes.tableContainer}>
             <ArgonBox className="search-input-container" mb={2}>
               <TextField
@@ -395,7 +426,6 @@ const Tables = () => {
                     >
                       <Visibility />
                     </IconButton>
-
                     <IconButton
                       onClick={() => handleUpdate(request.requestId)}
                       color="primary"
@@ -417,7 +447,8 @@ const Tables = () => {
               </tbody>
             </table>
           </ArgonBox>
-
+            </>
+          )}
           <Container className={classes.pagination}>
             <Pagination
               count={Math.ceil(requestsData.length / rowsPerPage)}
@@ -530,7 +561,7 @@ const Tables = () => {
         </Card>
       </ArgonBox>
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
-        <DialogTitle className={classes.dialogTitle} style={{ color: "white" }}>Request Details</DialogTitle>
+        <DialogTitle className={classes.dialogTitle} style={{ color: "white"  }}>Request Details</DialogTitle>
         <DialogContent dividers >
           {selectedRequest && (
             <List >
@@ -598,4 +629,4 @@ const Tables = () => {
   );
 };
 
-export default Tables;
+export default Index;
