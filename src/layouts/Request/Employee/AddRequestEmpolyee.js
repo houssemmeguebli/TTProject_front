@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Button,
@@ -6,69 +6,93 @@ import {
   Container,
   Typography,
   Paper,
-  IconButton,
   TextField,
-  Autocomplete,
-  Switch,
-  FormControlLabel,
+  FormControl,
+  FormHelperText,
+  CircularProgress,
+  Box
 } from "@mui/material";
-import { DateRange, Note } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import RequestService from "../../../_services/RequestService";
-import UserService from "../../../_services/ProjectManagerService";
+import AuthService from "../../../_services/AuthService";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
-import EmployeeService from "../../../_services/EmployeeService";
-import AuthService from "../../../_services/AuthService";
 
 const requestService = new RequestService();
-const employeeService = new EmployeeService();
 const authService = new AuthService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 const currentUser = authService.getCurrentUser();
 
 const AddRequestEmp = ({ onSubmit }) => {
-  const [request, setRequest] = useState({
+  const navigate = useNavigate();
+
+  const [formValues, setFormValues] = useState({
     startDate: '',
     endDate: '',
     comment: '',
-    userId: currentUser.id,
+    userId: currentUser?.id || '' // Ensure userId is handled properly
   });
-  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setRequest(prevRequest => ({
-      ...prevRequest,
-      [name]: type === 'checkbox' ? checked : value,
+    const { name, value } = e.target;
+    setFormValues(prevValues => ({
+      ...prevValues,
+      [name]: value
     }));
+    validateForm();
   };
 
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prevTouched => ({
+      ...prevTouched,
+      [name]: true
+    }));
+    validateForm();
+  };
 
-  const userRole=1;
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formValues.startDate) newErrors.startDate = 'Start date is required';
+    if (!formValues.endDate) newErrors.endDate = 'End date is required';
+    if (formValues.startDate && formValues.endDate && formValues.startDate > formValues.endDate) {
+      newErrors.endDate = 'End date cannot be before start date';
+    }
+    if (!validateComment(formValues.comment)) newErrors.comment = 'Comment must be between 10 and 100 characters';
+    setErrors(newErrors);
+    setIsFormValid(Object.keys(newErrors).length === 0);
+  };
+
+  const validateComment = (comment) => {
+    return comment.length >= 10 && comment.length <= 100;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      console.log('Submitting request:', request);
-      await requestService.createRequest(request,userRole);
+    validateForm();
+    if (!isFormValid) return;
 
-      // Show success message
+    setLoading(true);
+
+    try {
+      await requestService.createRequest(formValues, 1);
       Swal.fire({
         title: "Great!",
         text: "Your request has been submitted!",
         icon: "success"
       });
-
-      // Reset the form
-      setRequest({
+      setFormValues({
         startDate: '',
         endDate: '',
         comment: '',
-        userId: currentUser.id,
-
+        userId: currentUser?.id || '' // Reset userId
       });
-
       onSubmit();
       navigate('/RequestEmployee');
     } catch (error) {
@@ -78,6 +102,8 @@ const AddRequestEmp = ({ onSubmit }) => {
         text: "There was a problem creating your request.",
         icon: "error"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,25 +119,32 @@ const AddRequestEmp = ({ onSubmit }) => {
       }}
     >
       <DashboardNavbar />
-      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "70vh", marginTop: '15%', marginBottom: '15%' }}>
+      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", marginTop: '10%', marginBottom: '10%' }}>
         <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "text.primary" }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "primary.main", marginBottom: 2 }}>
             Create Request
           </Typography>
-          <form onSubmit={handleSubmit} >
+          <Typography variant="body1" gutterBottom align="center" sx={{ color: "text.secondary", marginBottom: 4 }}>
+            Please fill out the form below to submit your request. Make sure to double-check the information before submitting.
+          </Typography>
+          <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
-                <div>
+                <FormControl fullWidth error={!!(errors.startDate && touched.startDate)} sx={{ marginBottom: 2 }}>
                   <Typography className="label">Start Date</Typography>
                   <TextField
+                    id="startDate"
                     name="startDate"
                     type="date"
-                    value={request.startDate}
-                    onChange={handleChange}
                     fullWidth
                     required
                     InputLabelProps={{ shrink: true }}
-                    className="textField"
+                    value={formValues.startDate}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    InputProps={{
+                      inputProps: { min: new Date().toISOString().split('T')[0] },
+                    }}
                     sx={{
                       marginTop: 1,
                       width: "100%",
@@ -131,21 +164,25 @@ const AddRequestEmp = ({ onSubmit }) => {
                       },
                     }}
                   />
-
-                </div>
+                  {errors.startDate && touched.startDate && <FormHelperText>{errors.startDate}</FormHelperText>}
+                </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <div>
+                <FormControl fullWidth error={!!(errors.endDate && touched.endDate)} sx={{ marginBottom: 2 }}>
                   <Typography className="label">End Date</Typography>
                   <TextField
+                    id="endDate"
                     name="endDate"
                     type="date"
-                    value={request.endDate}
-                    onChange={handleChange}
                     fullWidth
                     required
                     InputLabelProps={{ shrink: true }}
-                    className="textField"
+                    value={formValues.endDate}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    InputProps={{
+                      inputProps: { min: formValues.startDate || new Date().toISOString().split('T')[0] },
+                    }}
                     sx={{
                       marginTop: 1,
                       width: "100%",
@@ -165,22 +202,23 @@ const AddRequestEmp = ({ onSubmit }) => {
                       },
                     }}
                   />
-
-                </div>
+                  {errors.endDate && touched.endDate && <FormHelperText>{errors.endDate}</FormHelperText>}
+                </FormControl>
               </Grid>
               <Grid item xs={12}>
-                <div>
+                <FormControl fullWidth error={!!(errors.comment && touched.comment)} sx={{ marginBottom: 2 }}>
                   <Typography className="label">Comment</Typography>
+
                   <TextField
+                    id="comment"
                     name="comment"
-                    value={request.comment}
-                    onChange={handleChange}
+                    value={formValues.comment}
                     fullWidth
                     required
                     multiline
-                    rows={2}
-
-                    className="textField"
+                    rows={3}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     sx={{
                       marginTop: 1,
                       width: "100%",
@@ -200,85 +238,41 @@ const AddRequestEmp = ({ onSubmit }) => {
                       },
                     }}
                   />
-
-                </div>
+                  {errors.comment && touched.comment && <FormHelperText>{errors.comment}</FormHelperText>}
+                </FormControl>
               </Grid>
               <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
                 <Button
                   type="submit"
-                  fullWidth
                   variant="contained"
                   color="primary"
-                  sx={{
-                    borderRadius: 2,
-                    padding: "10px 20px",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-                    "&:hover": {
-                      backgroundColor: "#0056b3",
-                      boxShadow: "0px 6px 24px rgba(0, 0, 0, 0.15)",
-                      color: "white",
-                    },
-                    width: "50%",
-                  }}
+                  disabled={!isFormValid || loading}
+                  sx={{ minWidth: 200 }}
+                  startIcon={loading && <CircularProgress size={24} />}
                 >
-                  Submit
+                  {loading ? 'Submitting...' : 'Submit'}
                 </Button>
               </Grid>
             </Grid>
           </form>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#f5f5f5",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Important Notes:</Typography>
-            <Typography variant="body2">
-              - If approved, the employee will be notified automatically.
-              <br />
-              - Ensure all dates are correctly set before submitting.
+          <Box sx={{ padding: 2, borderRadius: 1, marginBottom: 4, marginTop: '4%' }}>
+            <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
+              Tips & Advice
             </Typography>
-          </div>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#e7f3ff",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Submission Guidelines:</Typography>
-            <Typography variant="body2">
-              - Double-check the selected employees name.
+            <Typography variant="body2" gutterBottom align="center" sx={{ color: "text.secondary" }}>
+              - Ensure the start and end dates are accurate.
               <br />
-              - Add any relevant comments to provide context.
+              - Provide a detailed comment explaining the reason for your request.
             </Typography>
-          </div>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#fff3cd",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Feedback Section:</Typography>
-            <Typography variant="body2">
-              - If you encounter issues, please reach out to HR.
-              <br />
-              - Your feedback is valuable for improving the process.
-            </Typography>
-          </div>
+          </Box>
         </Paper>
       </Container>
-
     </DashboardLayout>
   );
 };
 
 AddRequestEmp.propTypes = {
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
 };
 
 export default AddRequestEmp;

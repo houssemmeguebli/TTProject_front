@@ -21,7 +21,7 @@ class ProjectManagerService {
       const response = await axios.get(`${API_URL}/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error("Error fetching Project Manager:", error);
       throw error;
     }
   }
@@ -36,6 +36,7 @@ class ProjectManagerService {
     throw error;
   }
 
+
   }
   async deleteUser(userId) {
     try {
@@ -48,7 +49,16 @@ class ProjectManagerService {
     }
 
   }
+  async updateProjectManager(projectManagerId, updatedProjectManager) {
+    try {
+      await axios.put(`${API_URL}/${projectManagerId}`, updatedProjectManager);
+    } catch (error) {
+      console.error('Error updating project manager:', error);
+      throw error;
+    }
+  }
+
 
 }
 
-export default new ProjectManagerService();
+export default  ProjectManagerService;

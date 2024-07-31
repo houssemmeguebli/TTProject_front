@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 
 // prop-types is a library for typechecking of props.
@@ -16,10 +15,6 @@ import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
 import ArgonButton from "components/ArgonButton";
 
-// Argon Dashboard 2 MUI examples components
-import DefaultNavbarLink from "examples/Navbars/DefaultNavbar/DefaultNavbarLink";
-import DefaultNavbarMobile from "examples/Navbars/DefaultNavbar/DefaultNavbarMobile";
-
 // Argon Dashboard 2 MUI Base Styles
 import breakpoints from "assets/theme/base/breakpoints";
 
@@ -32,21 +27,18 @@ function DefaultNavbar({ brand, transparent, light, action }) {
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
 
-  const openMobileNavbar = ({ currentTarget }) => setMobileNavbar(currentTarget.parentNode);
-  const closeMobileNavbar = () => setMobileNavbar(false);
+  const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
   useEffect(() => {
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {
         setMobileView(true);
-        setMobileNavbar(false);
       } else {
         setMobileView(false);
         setMobileNavbar(false);
       }
     }
-
 
     window.addEventListener("resize", displayMobileNavbar);
 
@@ -60,7 +52,7 @@ function DefaultNavbar({ brand, transparent, light, action }) {
   return (
     <Container>
       <ArgonBox
-        pt={0.75}
+        pt={1}
         pb={1}
         px={{ xs: 4, sm: transparent ? 2 : 3, lg: transparent ? 0 : 2 }}
         my={2}
@@ -73,9 +65,9 @@ function DefaultNavbar({ brand, transparent, light, action }) {
         left={0}
         zIndex={99}
         sx={({
-          palette: { transparent: transparentColor, white, background },
-          functions: { rgba },
-        }) => ({
+               palette: { transparent: transparentColor, white, background },
+               functions: { rgba },
+             }) => ({
           backgroundColor: transparent
             ? transparentColor.main
             : rgba(darkMode ? background.dark : white.main, 0.8),
@@ -84,22 +76,18 @@ function DefaultNavbar({ brand, transparent, light, action }) {
       >
         <ArgonBox display="flex" justifyContent="space-between" alignItems="center" px={2}>
           <ArgonBox component={Link} to="/" py={transparent ? 1.5 : 0.75} lineHeight={1}>
-            <ArgonTypography variant="button" fontWeight="bold" color={light ? "white" : "dark"}>
-              {brand}
+            <ArgonTypography variant="h5" fontWeight="bold" color={light ? "white" : "dark"}>
+              TTAPP
             </ArgonTypography>
           </ArgonBox>
-          <ArgonBox color="inherit" display={{ xs: "none", lg: "flex" }} m={0} p={0}>
-            <DefaultNavbarLink icon="person" name="profile" route="/profile" light={light} />
-            <DefaultNavbarLink
-              icon="account_circle"
-              name="sign up"
-              route="/authentication/sign-up"
-              light={light}
-            />
+          <ArgonBox display={{ xs: "none", lg: "block" }}>
+            <ArgonTypography variant="subtitle1" color={light ? "white" : "dark"} mr={2}>
+              Welcome to TTAPP!
+            </ArgonTypography>
           </ArgonBox>
-          {action &&
+          {action && typeof action === "object" &&
             (action.type === "internal" ? (
-              <ArgonBox display={{ xs: "none", lg: "inline-block" }}>
+              <ArgonBox display={{ xs: "none", lg: "block" }}>
                 <ArgonButton
                   component={Link}
                   to={action.route}
@@ -111,7 +99,7 @@ function DefaultNavbar({ brand, transparent, light, action }) {
                 </ArgonButton>
               </ArgonBox>
             ) : (
-              <ArgonBox display={{ xs: "none", lg: "inline-block" }}>
+              <ArgonBox display={{ xs: "none", lg: "block" }}>
                 <ArgonButton
                   component="a"
                   href={action.route}
@@ -138,18 +126,50 @@ function DefaultNavbar({ brand, transparent, light, action }) {
             <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon>
           </ArgonBox>
         </ArgonBox>
+        {mobileNavbar && (
+          <ArgonBox display={{ xs: "block", lg: "none" }} mt={2}>
+            <ArgonTypography variant="subtitle1" color={light ? "white" : "dark"} mb={2}>
+              Welcome to TTAPP!
+            </ArgonTypography>
+            {action && typeof action === "object" &&
+              (action.type === "internal" ? (
+                <ArgonButton
+                  component={Link}
+                  to={action.route}
+                  variant={action.variant ? action.variant : "contained"}
+                  color={action.color ? action.color : "info"}
+                  size="small"
+                  fullWidth
+                >
+                  {action.label}
+                </ArgonButton>
+              ) : (
+                <ArgonButton
+                  component="a"
+                  href={action.route}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant={action.variant ? action.variant : "contained"}
+                  color={action.color ? action.color : "info"}
+                  size="small"
+                  fullWidth
+                >
+                  {action.label}
+                </ArgonButton>
+              ))}
+          </ArgonBox>
+        )}
       </ArgonBox>
-      {mobileView && <DefaultNavbarMobile open={mobileNavbar} close={closeMobileNavbar} />}
     </Container>
   );
 }
 
 // Declaring default props for DefaultNavbar
 DefaultNavbar.defaultProps = {
-  brand: "Argon Dashboard 2",
+  brand: "TTAPP",
   transparent: false,
   light: false,
-  action: false,
+  action: null,
 };
 
 // Typechecking props for the DefaultNavbar

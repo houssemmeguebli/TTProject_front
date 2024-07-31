@@ -38,6 +38,9 @@ import Request from "./layouts/Request";
 import { Logout } from "@mui/icons-material";
 import AuthService from "./_services/AuthService";
 import Swal from "sweetalert2";
+import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
+import CalendarEmp from "./layouts/Request/Employee/CalenderEmp";
+import ChangePassword from "./layouts/Request/Employee/ChangePassword";
 const authService = new AuthService();
 
 export default function App() {
@@ -52,6 +55,7 @@ export default function App() {
     employee: 'Employee',
     projectManager: 'ProjectManager'
   };
+  const user = authService.getCurrentUser();
 
   const handleOnSubmit = () => {
     navigate('/tables');
@@ -215,28 +219,29 @@ export default function App() {
           {/* Public Routes */}
           <Route path="/authentication/sign-in" element={<SignIn />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/change-password/:userID" element={<ChangePassword />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Protected Routes for All Users */}
           <Route element={<ProtectedRoute roles={[roles.projectManager, roles.employee]} />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/Calendar" element={<Calendar />} />
+            <Route path="/employee/:employeeId" element={<DetailsEmp />}/>
+            <Route path="/*" element={<Calendar />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/logout" element={<Logout />} />
-
           </Route>
-
           {/* Protected Routes for ProjectManager Role */}
           <Route element={<ProtectedRoute roles={[roles.projectManager]} />}>
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/EmployeeProfiles" element={<EmployeeProfiles />} />
             <Route path="/authentication/sign-up" element={<SignUp />} />
             <Route path="/Requests" element={<Request />} />
             <Route path="/add" element={<Index onSubmit={handleOnSubmit} />} />
             <Route path="/editRequest/:requestId" element={<UpdateRequest />} />
           </Route>
-
           {/* Protected Routes for Employee Role */}
           <Route element={<ProtectedRoute roles={[roles.employee]} />}>
             <Route path="/RequestEmployee" element={<Employee />} />
+            <Route path="/CalendarEmployee" element={<CalendarEmp />} />
             <Route path="/AddRequestEmp" element={<AddRequestEmp onSubmit={handleOnSubmit} />} />
             <Route path="/editRequestEmp/:requestId" element={<UpdateRequestEmp />} />
           </Route>

@@ -26,8 +26,8 @@ import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import { makeStyles } from "@mui/styles";
 import ArgonBox from "../../components/ArgonBox";
 import ArgonTypography from "../../components/ArgonTypography";
-import { Link } from "react-router-dom";
-import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
+import { Link, useNavigate } from "react-router-dom";
+import { Add, Delete, Edit, Visibility, Warning } from "@mui/icons-material";
 import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
 import Footer from "../../examples/Footer";
@@ -149,6 +149,7 @@ const EmployeeTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -191,13 +192,12 @@ const EmployeeTable = () => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+
   };
 
   const handleViewDetails = (employee) => {
-    setSelectedEmployee(employee);
-    setOpenDialog(true);
+    navigate(`/employee/${employee.id}`);
   };
-
   const handleDialogClose = () => {
     setOpenDialog(false);
   };
@@ -239,6 +239,81 @@ const EmployeeTable = () => {
       }
     }
   };
+  const UserStatus = {
+    INACTIVE: 0,
+    ACTIVE: 1,
+    SUSPENDED: 2,
+  };
+
+  const handleToggleStatus = async (employee) => {
+    const newStatus = employee.userStatus === UserStatus.SUSPENDED ? UserStatus.ACTIVE : UserStatus.SUSPENDED;
+    const result = await Swal.fire({
+      title: "Confirm Status Change",
+      text: `Are you sure you want to mark this employee as ${newStatus === UserStatus.ACTIVE ? 'Active' : 'Suspended'}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, change status!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await employeeService.updateEmployee(employee.id, { ...employee, userStatus: newStatus });
+        setEmployees(employees.map(emp => emp.id === employee.id ? { ...emp, userStatus: newStatus } : emp));
+        Swal.fire({
+          title: "Status Changed!",
+          text: `Employee status has been updated to ${newStatus === UserStatus.ACTIVE ? 'Active' : 'Inactive'}.`,
+          icon: "success",
+        });
+      } catch (error) {
+        console.error('Error updating employee status:', error);
+        Swal.fire({
+          title: "Error!",
+          text: "There was a problem updating employee status.",
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  const getRoleName = (role) => {
+    switch (role) {
+      case 0:
+        return 'Project Manager';
+      case 1:
+        return 'Employee';
+      default:
+        return 'Unknown Role';
+    }
+  };
+
+  const getStatusName = (status) => {
+    switch (status) {
+      case UserStatus.INACTIVE:
+        return 'INACTIVE';
+      case UserStatus.ACTIVE:
+        return 'ACTIVE';
+      case UserStatus.SUSPENDED:
+        return 'Suspended';
+      default:
+        return 'Unknown Status';
+    }
+  };
+  const getStatusColor = (status) => {
+    switch (status) {
+      case UserStatus.ACTIVE:
+        return 'green';
+      case UserStatus.SUSPENDED:
+        return 'red';
+      case UserStatus.INACTIVE:
+        return 'gray';
+      default:
+        return 'black';
+    }
+  };
+
+
 
   return (
     <DashboardLayout
@@ -286,34 +361,31 @@ const EmployeeTable = () => {
                 <tr>
                   <th>Full Name</th>
                   <th>Email</th>
-                  <th>Role</th>
-                  <th>Department</th>
-                  <th>Actions</th>
+                  <th style={{textAlign:'center'}}>Role</th>
+                  <th style={{textAlign:'center'}}>Department</th>
+                  <th style={{textAlign:'center'}}>Status</th>
+                  <th style={{textAlign:'center'}}>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 {filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(employee => (
-                  <tr key={employee.id}>
+                  <tr key={employee.id} >
                     <td>{employee.firstName} {employee.lastName}</td>
                     <td>{employee.email}</td>
-                    <td>{employee.role}</td>
-                    <td>{employee.department}</td>
-                    <td>
+                    <td style={{textAlign:'center'}}>{getRoleName(employee.role)}</td>
+                    <td style={{textAlign:'center'}}>{employee.department}</td>
+                    <td style={{textAlign:'center', color: getStatusColor(employee.userStatus) }}>{getStatusName(employee.userStatus)}</td>
+                    <td style={{textAlign:'center'}}>
                       <IconButton onClick={() => handleViewDetails(employee)}>
                         <Visibility />
                       </IconButton>
-                      <IconButton
-                        onClick={() => handleUpdate(employee.id)}
-                        color="primary"
-                        aria-label="Edit request"
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => handleDelete(employee.id)}
-                        color="secondary"
-                        aria-label="Delete request"
-                      >
+                      {employee.userStatus !== UserStatus.INACTIVE && (
+                        <IconButton onClick={() => handleToggleStatus(employee)} color="warning">
+                          {employee.userStatus === UserStatus.ACTIVE ? <Warning /> : <Add />}
+                        </IconButton>
+                      )}
+
+                      <IconButton onClick={() => handleDelete(employee.id)} color="error">
                         <Delete />
                       </IconButton>
                     </td>

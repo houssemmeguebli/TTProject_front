@@ -1,32 +1,17 @@
-
-
-import { useState } from "react";
-
-// prop-types is a library for typechecking of props
-import PropTypes from "prop-types";
-
-// react-router components
-import { Link } from "react-router-dom";
-
-// @mui material components
 import Collapse from "@mui/material/Collapse";
-import MuiLink from "@mui/material/Link";
+import ArgonBox from "../../../components/ArgonBox";
+import PropTypes from "prop-types";
+import ArgonTypography from "../../../components/ArgonTypography";
 import Icon from "@mui/material/Icon";
-
-// Argon Dashboard 2 MUI components
-import ArgonBox from "components/ArgonBox";
-import ArgonTypography from "components/ArgonTypography";
-
-// Argon Dashboard 2 MUI exampless
-import DefaultNavbarDropdown from "examples/Navbars/DefaultNavbar/DefaultNavbarDropdown";
-
-// Argon Dashboard 2 PRO React contexts
-import { useArgonController } from "context";
+import DefaultNavbarDropdown from "./DefaultNavbarDropdown";
 
 function DefaultNavbarMobile({ routes, open }) {
   const [collapse, setCollapse] = useState("");
   const [controller] = useArgonController();
   const { darkMode } = controller;
+
+  console.log("routes:", routes);
+  console.log("open:", open);
 
   const handleSetCollapse = (name) => (collapse === name ? setCollapse(false) : setCollapse(name));
 
@@ -92,10 +77,10 @@ function DefaultNavbarMobile({ routes, open }) {
                         px={item.icon ? 5 : 2}
                         mb={index === item.collapse.length - 1 ? 2 : 0}
                         sx={({
-                          palette: { white, grey, dark },
-                          borders: { borderRadius },
-                          functions: { rgba },
-                        }) => ({
+                               palette: { white, grey, dark },
+                               borders: { borderRadius },
+                               functions: { rgba },
+                             }) => ({
                           borderRadius: borderRadius.md,
                           cursor: "pointer",
                           transition: "all 300ms linear",
@@ -120,10 +105,10 @@ function DefaultNavbarMobile({ routes, open }) {
                     target={item.href ? "_blank" : ""}
                     rel={item.href ? "noreferrer" : "noreferrer"}
                     sx={({
-                      palette: { white, grey, dark },
-                      borders: { borderRadius },
-                      functions: { rgba },
-                    }) => ({
+                           palette: { white, grey, dark },
+                           borders: { borderRadius },
+                           functions: { rgba },
+                         }) => ({
                       borderRadius: borderRadius.md,
                       cursor: "pointer",
                       transition: "all 300ms linear",

@@ -6,20 +6,18 @@ import {
   Container,
   Typography,
   Paper,
-  IconButton,
   TextField,
   Autocomplete,
-  Switch,
-  FormControlLabel,
+  FormControl,
+  FormHelperText,
+  Box,
 } from "@mui/material";
-import { DateRange, Note } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import RequestService from "../../../_services/RequestService";
-import UserService from "../../../_services/ProjectManagerService";
+import EmployeeService from "../../../_services/EmployeeService";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
-import EmployeeService from "../../../_services/EmployeeService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
@@ -31,18 +29,18 @@ const Index = ({ onSubmit }) => {
     endDate: '',
     comment: '',
     userId: '',
-    urgent: false, // New feature: Urgent request
   });
 
   const [users, setUsers] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [touched, setTouched] = useState({});
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await employeeService.getAllEmployees();
-        console.log('Fetched users:', response);
-
-        // Check if the response contains the $values array
         if (response.$values) {
           setUsers(response.$values);
         } else {
@@ -56,11 +54,20 @@ const Index = ({ onSubmit }) => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const validate = validateForm(request);
+    setIsFormValid(validate);
+  }, [request]);
+
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     setRequest(prevRequest => ({
       ...prevRequest,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? e.target.checked : value,
+    }));
+    setTouched(prevTouched => ({
+      ...prevTouched,
+      [name]: true,
     }));
   };
 
@@ -69,22 +76,69 @@ const Index = ({ onSubmit }) => {
       ...prevRequest,
       userId: value ? value.id : '',
     }));
+    setTouched(prevTouched => ({
+      ...prevTouched,
+      userId: true,
+    }));
   };
-const userRole=0;
+
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    setRequest(prevRequest => ({
+      ...prevRequest,
+      [name]: value,
+    }));
+    setTouched(prevTouched => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+  };
+
+  const disableWeekends = (date) => {
+    const day = new Date(date).getDay();
+    return day === 0 || day === 6;
+  };
+
+  const validateDates = () => {
+    const { startDate, endDate } = request;
+    return new Date(endDate) >= new Date(startDate);
+  };
+
+  const validateComment = (comment) => {
+    return comment.length >= 10 && comment.length <= 100;
+  };
+
+  const validateForm = (formValues) => {
+    const errors = {};
+    if (!formValues.startDate) {
+      errors.startDate = 'Start date is required';
+    }
+    if (!formValues.endDate) {
+      errors.endDate = 'End date is required';
+    } else if (!validateDates()) {
+      errors.endDate = 'End date must be after start date';
+    }
+    if (!validateComment(formValues.comment)) {
+      errors.comment = 'Comment must be between 10 and 100 characters';
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm(request)) {
+      return;
+    }
     try {
-      console.log('Submitting request:', request);
-      await requestService.createRequest(request,userRole);
+      await requestService.createRequest(request, 0);
 
-      // Show success message
       Swal.fire({
-        title: "Great!",
-        text: "Your request has been submitted!",
+        title: "Success!",
+        text: "Your request has been submitted successfully.",
         icon: "success"
       });
 
-      // Reset the form
       setRequest({
         startDate: '',
         endDate: '',
@@ -93,12 +147,12 @@ const userRole=0;
       });
 
       onSubmit();
-      navigate('/tables');
+      navigate('/Requests');
     } catch (error) {
       console.error('Error creating request:', error.response ? error.response.data : error.message);
       Swal.fire({
         title: "Error!",
-        text: "There was a problem creating your request.",
+        text: "There was a problem submitting your request.",
         icon: "error"
       });
     }
@@ -116,61 +170,32 @@ const userRole=0;
       }}
     >
       <DashboardNavbar />
-      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "70vh", marginTop: '15%', marginBottom: '15%' }}>
-        <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "text.primary" }}>
+      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", marginTop: '8%', marginBottom: '8%' }}>
+        <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 800 }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "text.primary", marginBottom: 3 }}>
             Create Request
           </Typography>
-          <form onSubmit={handleSubmit} >
+          <Typography variant="subtitle1" gutterBottom align="center" sx={{ marginBottom: 3 }}>
+            Please fill out the form below to submit your request. Make sure to provide all required information and check the dates carefully.
+          </Typography>
+          <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
-                <div>
-                  <Typography className="label">Start Date</Typography>
+                <FormControl fullWidth error={!!(errors.startDate && touched.startDate)} sx={{ mb: 2 }}>
+                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Start Date</Typography>
                   <TextField
                     name="startDate"
                     type="date"
                     value={request.startDate}
-                    onChange={handleChange}
+                    onChange={handleDateChange}
                     fullWidth
                     required
                     InputLabelProps={{ shrink: true }}
-                    className="textField"
+                    InputProps={{
+                      inputProps: { min: new Date().toISOString().split('T')[0], disabled: disableWeekends(request.startDate) },
+                    }}
                     sx={{
                       marginTop: 1,
-                      width: "100%",
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}                  />
-
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <div>
-                  <Typography className="label">End Date</Typography>
-                  <TextField
-                    name="endDate"
-                    type="date"
-                    value={request.endDate}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    InputLabelProps={{ shrink: true }}
-                    className="textField"
-                    sx={{
-                      marginTop: 1,
-                      width: "100%",
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': {
                           borderColor: theme => theme.palette.primary.main,
@@ -187,25 +212,25 @@ const userRole=0;
                       },
                     }}
                   />
-
-                </div>
+                  {errors.startDate && touched.startDate && <FormHelperText>{errors.startDate}</FormHelperText>}
+                </FormControl>
               </Grid>
-              <Grid item xs={12}>
-                <div>
-                  <Typography className="label">Comment</Typography>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth error={!!(errors.endDate && touched.endDate)} sx={{ mb: 2 }}>
+                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>End Date</Typography>
                   <TextField
-                    name="comment"
-                    value={request.comment}
-                    onChange={handleChange}
+                    name="endDate"
+                    type="date"
+                    value={request.endDate}
+                    onChange={handleDateChange}
                     fullWidth
                     required
-                    multiline
-                    rows={2}
-
-                    className="textField"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputProps: { min: request.startDate, disabled: disableWeekends(request.endDate) },
+                    }}
                     sx={{
                       marginTop: 1,
-                      width: "100%",
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': {
                           borderColor: theme => theme.palette.primary.main,
@@ -220,106 +245,90 @@ const userRole=0;
                           width: '100% !important',
                         },
                       },
-                    }}                  />
-
-                </div>
+                    }}                               />
+                  {errors.endDate && touched.endDate && <FormHelperText>{errors.endDate}</FormHelperText>}
+                </FormControl>
               </Grid>
               <Grid item xs={12}>
-                <Typography className="label">Select Employee</Typography>
-                <Autocomplete
-                  id="user-select"
-                  options={users}
-                  getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
-                  onChange={handleUserChange}
-                  renderInput={(params) => <TextField {...params} variant="outlined" fullWidth />}
-                  sx={{
-                    marginTop: 1,
-                    width: "100%",
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: theme => theme.palette.primary.main,
+                <FormControl fullWidth error={!!(errors.comment && touched.comment)} sx={{ mb: 2 }}>
+                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Comment</Typography>
+                  <TextField
+                    name="comment"
+                    type="text"
+                    value={request.comment}
+                    onChange={handleChange}
+                    fullWidth
+                    required
+                    multiline
+                    rows={4}
+                    sx={{
+                      marginTop: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme => theme.palette.primary.main,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '& .MuiInputBase-input': {
+                          width: '100% !important',
+                        },
                       },
-                      '&:hover fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '& .MuiInputBase-input': {
-                        width: '100% !important',
-                      },
-                    },
-                  }}
-                />
+                    }}                               />
+                  {errors.comment && touched.comment && <FormHelperText>{errors.comment}</FormHelperText>}
+                </FormControl>
               </Grid>
-
-              <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+              <Grid item xs={12}>
+                <FormControl fullWidth error={!!(errors.userId && touched.userId)} sx={{ mb: 2 }}>
+                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Employee</Typography>
+                  <Autocomplete
+                    options={users}
+                    getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+                    onChange={handleUserChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        name="userId"
+                        label="Select Employee"
+                        required
+                        sx={{
+                          marginTop: 1,
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: theme => theme.palette.primary.main,
+                            },
+                            '&:hover fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '& .MuiInputBase-input': {
+                              width: '100% !important',
+                            },
+                          },
+                        }}                               />
+                    )}
+                  />
+                  {errors.userId && touched.userId && <FormHelperText>{errors.userId}</FormHelperText>}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
                 <Button
                   type="submit"
-                  fullWidth
                   variant="contained"
                   color="primary"
-                  sx={{
-                    borderRadius: 2,
-                    padding: "10px 20px",
-                    fontWeight: "bold",
-                    textTransform: "none",
-                    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-                    "&:hover": {
-                      backgroundColor: "#0056b3",
-                      boxShadow: "0px 6px 24px rgba(0, 0, 0, 0.15)",
-                      color: "white",
-                    },
-                    width: "50%",
-                  }}
+                  disabled={!isFormValid}
+                  sx={{ minWidth: 200 }}
                 >
                   Submit
                 </Button>
               </Grid>
             </Grid>
           </form>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#f5f5f5",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Important Notes:</Typography>
-            <Typography variant="body2">
-              - If approved, the employee will be notified automatically.
-              <br />
-              - Ensure all dates are correctly set before submitting.
-            </Typography>
-          </div>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#e7f3ff",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Submission Guidelines:</Typography>
-            <Typography variant="body2">
-              - Double-check the selected employees name.
-              <br />
-              - Add any relevant comments to provide context.
-            </Typography>
-          </div>
-          <div style={{
-            marginTop: "24px",
-            backgroundColor: "#fff3cd",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-          }}>
-            <Typography variant="h6">Feedback Section:</Typography>
-            <Typography variant="body2">
-              - If you encounter issues, please reach out to HR.
-              <br />
-              - Your feedback is valuable for improving the process.
-            </Typography>
-          </div>
         </Paper>
       </Container>
     </DashboardLayout>
@@ -327,7 +336,7 @@ const userRole=0;
 };
 
 Index.propTypes = {
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
 };
 
 export default Index;

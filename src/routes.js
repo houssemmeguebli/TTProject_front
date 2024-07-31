@@ -11,9 +11,12 @@ import AuthService from "./_services/AuthService";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import EmployeeProfiles from "./layouts/EmployeeProfiles";
-import Empolyee from "./layouts/Request/Employee"; // Import the AuthService
+import Empolyee from "./layouts/Request/Employee";
+import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
+import CalendarEmp from "./layouts/Request/Employee/CalenderEmp"; // Import the AuthService
 
 const authService = new AuthService();
+const currentUser = authService.getCurrentUser();
 const Logout = () => {
   const navigate = useNavigate();
 
@@ -73,6 +76,30 @@ const routes = [
   },
   {
     type: "route",
+    name: "Calendar",
+    key: "Calendar",
+    route: "/Calendar",
+    icon: (
+      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
+    ),
+    component: <Calendar  />,
+    roles: ["ProjectManager"],
+
+  },
+  {
+    type: "route",
+    name: "Calendar ",
+    key: "CalendarEmployee",
+    route: "/CalendarEmployee",
+    icon: (
+      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
+    ),
+    component: <CalendarEmp  />,
+    roles: ["Employee"],
+
+  },
+  {
+    type: "route",
     name: "Liste of Requests",
     key: "Requests",
     route: "/Requests",
@@ -95,27 +122,16 @@ const routes = [
     roles: ["Employee"],
 
   },
-  {
-    type: "route",
-    name: "Calendar",
-    key: "Calendar",
-    route: "/Calendar",
-    icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
-    ),
-    component: <Calendar  />,
-    roles: ["ProjectManager","Employee"],
 
-  },
   { type: "title", title: "Account Pages", key: "account-pages" },
   {
     type: "route",
     name: "My Profile",
     key: "profile",
-    route: "/profile",
+    route: `/employee/${currentUser?.id || ""}`,
     icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
-    component: <Profile />,
-    roles: ["ProjectManager","Employee"],
+    component: <DetailsEmp />,
+    roles: ["ProjectManager", "Employee"],
 
   },
   {

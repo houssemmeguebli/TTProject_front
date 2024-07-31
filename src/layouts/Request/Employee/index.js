@@ -369,9 +369,11 @@ const Empolyee = () => {
                       <Visibility />
                     </IconButton>
 
-                    <IconButton onClick={() => handleUpdate(request.requestId)}>
-                      <Edit />
-                    </IconButton>
+                    {request.status !== 1 && request.status !== 3 && (
+                      <IconButton onClick={() => handleUpdate(request.requestId)}>
+                        <Edit />
+                      </IconButton>
+                    )}
                     <IconButton onClick={() => handleDelete(request.requestId)}>
                       <Delete />
                     </IconButton>

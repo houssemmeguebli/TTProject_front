@@ -503,28 +503,13 @@ const Index = () => {
             </Typography>
           </div>
 
-          <ArgonBox className={classes.summarySection}>
-            <Typography variant="h6">Recent Activities:</Typography>
-            <Typography variant="body2">
-              - {requestsData.filter(req => new Date(req.startDate).getDate() === new Date().getDate()).length} new
-              requests submitted today.
-              <br />
-              - {requestsData.filter(req => req.status === 2 && (new Date(req.status.updated) >= new Date(Date.now() - 60 * 60 * 1000))).length} request
-              updated in the last hour.
-              <br />
-              - {requestsData.filter(req => req.status === 1 && (new Date(req.status.approved) >= new Date(Date.now() - 24 * 60 * 60 * 1000))).length} requests
-              approved in the last 24 hours.
-            </Typography>
-          </ArgonBox>
-
 
           <ArgonBox className={classes.summarySection}>
             <Typography variant="h6" style={{ fontWeight: 'bold', marginBottom: '16px' }}>
               Quick Links:
             </Typography>
             <Grid container spacing={2}>
-
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <Link to="/calendar" style={{ textDecoration: 'none' }}>
                   <Button
                     variant="outlined"
@@ -536,7 +521,8 @@ const Index = () => {
                   </Button>
                 </Link>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
+                <Link to="/EmployeeProfiles" style={{ textDecoration: 'none' }}>
                 <Button
                   variant="outlined"
                   color="primary"
@@ -545,16 +531,7 @@ const Index = () => {
                 >
                   Manage Users
                 </Button>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  className={classes.quickLinkButton}
-                >
-                  Generate Report
-                </Button>
+                </Link>
               </Grid>
             </Grid>
           </ArgonBox>
