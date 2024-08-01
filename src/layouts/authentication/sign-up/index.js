@@ -11,7 +11,7 @@ import {
   Radio,
   Typography,
   Button,
-  FormLabel,
+  FormLabel, CircularProgress,
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import Swal from "sweetalert2";
@@ -20,6 +20,7 @@ import EmailService from "../../../_services/EmailService";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
 
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 const authService = new AuthService();
@@ -42,6 +43,7 @@ function Cover() {
   const [touched, setTouched] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const roles = [
     { value: 0, label: "Project Manager" },
@@ -163,6 +165,7 @@ function Cover() {
       Gender: Number(formData.Gender),
       role: Number(formData.role),
     };
+    setLoading(true);
 
     try {
       await authService.register(user);
@@ -177,201 +180,38 @@ function Cover() {
       } else {
         Swal.fire("Error!", "Error registering user or sending email.", "error");
       }
+    } finally {
+      setLoading(false);
     }
-  };
+    }
+    ;
+    const today = new Date().toISOString().split('T')[0];
 
-  return (
-    <DashboardLayout
-      sx={{
-        backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
-          `${linearGradient(
-            rgba(gradients.info.main, 0.6),
-            rgba(gradients.info.state, 0.6)
-          )}, url(${bgImage})`,
-        backgroundPositionY: "50%",
-      }}
-    >
-      <DashboardNavbar />
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh" marginTop="7%">
-        <Card sx={{ width: '80%', maxWidth: 800, p: 3 }}>
-          <Typography variant="h4" fontWeight="medium" textAlign="center" mb={2}>
-            Add New Employee
-          </Typography>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
-                  <TextField
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                  />
-                  {errors.firstName && touched.firstName && <FormHelperText>{errors.firstName}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={!!errors.lastName && touched.lastName} sx={{ mb: 2 }}>
-                  <TextField
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                  />
-                  {errors.lastName && touched.lastName && <FormHelperText>{errors.lastName}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
-                  <TextField
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                  />
-                  {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={!!errors.phone && touched.phone} sx={{ mb: 2 }}>
-                  <TextField
-                    name="phone"
-                    placeholder="Phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                  />
-                  {errors.phone && touched.phone && <FormHelperText>{errors.phone}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
-                  <TextField
-                    name="department"
-                    placeholder="Department"
-                    value={formData.department}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                  />
-                  {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={!!errors.role && touched.role} sx={{ mb: 2 }}>
-                  <Autocomplete
-                    options={roles}
-                    getOptionLabel={(option) => option.label}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Role" variant="outlined" />
-                    )}
-                    onChange={handleRoleChange}
-                    onBlur={handleBlur}
-                    value={roles.find((role) => role.value === formData.role) || null}
-                  />
-                  {errors.role && touched.role && <FormHelperText>{errors.role}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              {formData.role === 0 && (
+    return (
+      <DashboardLayout
+        sx={{
+          backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
+            `${linearGradient(
+              rgba(gradients.info.main, 0.6),
+              rgba(gradients.info.state, 0.6)
+            )}, url(${bgImage})`,
+          backgroundPositionY: "50%",
+        }}
+      >
+        <DashboardNavbar />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh" marginTop="7%">
+          <Card sx={{ width: '80%', maxWidth: 800, p: 3 }}>
+            <Typography variant="h4" fontWeight="medium" textAlign="center" mb={2}>
+              Add New Employee
+            </Typography>
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth error={!!errors.projectName && touched.projectName} sx={{ mb: 2 }}>
+                  <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
                     <TextField
-                      name="projectName"
-                      placeholder="Project Name"
-                      value={formData.projectName}
+                      name="firstName"
+                      placeholder="First Name"
+                      value={formData.firstName}
                       onChange={handleChange}
                       onBlur={handleBlur}
                       fullWidth
@@ -393,17 +233,15 @@ function Cover() {
                         },
                       }}
                     />
-                    {errors.projectName && touched.projectName && <FormHelperText>{errors.projectName}</FormHelperText>}
+                    {errors.firstName && touched.firstName && <FormHelperText>{errors.firstName}</FormHelperText>}
                   </FormControl>
                 </Grid>
-              )}
-              {formData.role === 1 && (
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth error={!!errors.position && touched.position} sx={{ mb: 2 }}>
+                  <FormControl fullWidth error={!!errors.lastName && touched.lastName} sx={{ mb: 2 }}>
                     <TextField
-                      name="position"
-                      placeholder="Position"
-                      value={formData.position}
+                      name="lastName"
+                      placeholder="Last Name"
+                      value={formData.lastName}
                       onChange={handleChange}
                       onBlur={handleBlur}
                       fullWidth
@@ -425,81 +263,270 @@ function Cover() {
                         },
                       }}
                     />
-                    {errors.position && touched.position && <FormHelperText>{errors.position}</FormHelperText>}
+                    {errors.lastName && touched.lastName && <FormHelperText>{errors.lastName}</FormHelperText>}
                   </FormControl>
                 </Grid>
-              )}
-              <Grid item xs={12}  sm={12}>
-                <FormControl fullWidth error={!!errors.Gender && touched.Gender} sx={{ mb: 2 }}>
-                  <Grid item xs={4}>
-                  <FormLabel id="gender">Gender</FormLabel>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
+                    <TextField
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      fullWidth
+                      sx={{
+                        marginTop: 1,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: theme => theme.palette.primary.main,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '& .MuiInputBase-input': {
+                            width: '100% !important',
+                          },
+                        },
+                      }}
+                    />
+                    {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.phone && touched.phone} sx={{ mb: 2 }}>
+                    <TextField
+                      name="phone"
+                      placeholder="Phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      fullWidth
+                      sx={{
+                        marginTop: 1,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: theme => theme.palette.primary.main,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '& .MuiInputBase-input': {
+                            width: '100% !important',
+                          },
+                        },
+                      }}
+                    />
+                    {errors.phone && touched.phone && <FormHelperText>{errors.phone}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.role && touched.role} sx={{ mb: 2 }}>
+                    <Autocomplete
+                      options={roles}
+                      getOptionLabel={(option) => option.label}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Role" variant="outlined" />
+                      )}
+                      onChange={handleRoleChange}
+                      onBlur={handleBlur}
+                      value={roles.find((role) => role.value === formData.role) || null}
+                      sx={{
+                        marginTop: 1,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: theme => theme.palette.primary.main,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '& .MuiInputBase-input': {
+                            width: '100% !important',
+                          },
+                        },
+                      }}
+                    />
+                    {errors.role && touched.role && <FormHelperText>{errors.role}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                {formData.role === 0 && (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth error={!!errors.projectName && touched.projectName} sx={{ mb: 2 }}>
+                      <TextField
+                        name="projectName"
+                        placeholder="Project Name"
+                        value={formData.projectName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        fullWidth
+                        sx={{
+                          marginTop: 1,
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: theme => theme.palette.primary.main,
+                            },
+                            '&:hover fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '& .MuiInputBase-input': {
+                              width: '100% !important',
+                            },
+                          },
+                        }}
+                      />
+                      {errors.projectName && touched.projectName &&
+                        <FormHelperText>{errors.projectName}</FormHelperText>}
+                    </FormControl>
                   </Grid>
-                  <RadioGroup
-                    aria-labelledby="gender"
-                    name="Gender"
-                    value={formData.Gender}
-                    onChange={handleChange}
-                  >
-                  <Grid item xs={4}>
-                    <FormControlLabel value="0" control={<Radio />} label="Male" />
-                    </Grid>
-                    <Grid item xs={4}>
-                    <FormControlLabel value="1" control={<Radio />} label="Female" />
-                    </Grid>
-                  </RadioGroup>
-                  {errors.Gender && touched.Gender && <FormHelperText>{errors.Gender}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth error={!!errors.dateOfbirth && touched.dateOfbirth} sx={{ mb: 2 }}>
-                  <TextField
-                    type="date"
-                    name="dateOfbirth" // Fixed spelling
-                    placeholder="Date of Birth"
-                    value={formData.dateOfbirth}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
+                )}
+                {formData.role === 1 && (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth error={!!errors.position && touched.position} sx={{ mb: 2 }}>
+                      <TextField
+                        name="position"
+                        placeholder="Position"
+                        value={formData.position}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        fullWidth
+                        sx={{
+                          marginTop: 1,
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: theme => theme.palette.primary.main,
+                            },
+                            '&:hover fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme => theme.palette.primary.dark,
+                            },
+                            '& .MuiInputBase-input': {
+                              width: '100% !important',
+                            },
+                          },
+                        }}
+                      />
+                      {errors.position && touched.position && <FormHelperText>{errors.position}</FormHelperText>}
+                    </FormControl>
+                  </Grid>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
+                    <TextField
+                      name="department"
+                      placeholder="Department"
+                      value={formData.department}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      fullWidth
+                      sx={{
+                        marginTop: 1,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: theme => theme.palette.primary.main,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '& .MuiInputBase-input': {
+                            width: '100% !important',
+                          },
+                        },
+                      }}
+                    />
+                    {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.Gender && touched.Gender} sx={{ mb: 2 }}>
+                    <FormLabel component="legend">Gender</FormLabel>
+                    <RadioGroup
+                      name="Gender"
+                      value={formData.Gender}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'row', // Align items in a row
+                        gap: 2, // Add space between the radio buttons
+                      }}
+                    >
+                      <FormControlLabel value="0" control={<Radio />} label="Male" />
+                      <FormControlLabel value="1" control={<Radio />} label="Female" />
+                    </RadioGroup>
+                    {errors.Gender && touched.Gender && <FormHelperText>{errors.Gender}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormControl fullWidth error={!!errors.dateOfbirth && touched.dateOfbirth} sx={{ mb: 2 }}>
+                    <TextField
+                      type="date"
+                      name="dateOfbirth"
+                      placeholder="Date of Birth"
+                      value={formData.dateOfbirth}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      fullWidth
+                      sx={{
+                        marginTop: 1,
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: theme => theme.palette.primary.main,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme => theme.palette.primary.dark,
+                          },
+                          '& .MuiInputBase-input': {
+                            width: '100% !important',
+                          },
+                        },
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      inputProps={{ max: today }} // Restrict selectable date to today and before
+                    />
+                    {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={!isFormValid}
                     fullWidth
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={!isFormValid}
-                  fullWidth
 
-                >
-                  Submit
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
-        </Card>
-      </Box>
-    </DashboardLayout>
-  );
-}
 
+                  >
+                    {loading ? <CircularProgress size={24} /> : 'Submit'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </form>
+          </Card>
+        </Box>
+      </DashboardLayout>
+    );
+  }
 export default Cover;

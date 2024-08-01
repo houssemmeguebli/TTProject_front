@@ -40,7 +40,9 @@ import AuthService from "./_services/AuthService";
 import Swal from "sweetalert2";
 import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
 import CalendarEmp from "./layouts/Request/Employee/CalenderEmp";
-import ChangePassword from "./layouts/Request/Employee/ChangePassword";
+import EmployeeChangePassword from "./layouts/authentication/ChangePassword/EmployeeChangePassword";
+import ProjectManagerService from "./_services/ProjectManagerService";
+import ProjectManagerChangePassword from "./layouts/authentication/ChangePassword/ProjectManagerChangePassword";
 const authService = new AuthService();
 
 export default function App() {
@@ -109,7 +111,12 @@ export default function App() {
           );
         }
       } else {
-        navigate("/dashboard"); // Navigate to dashboard if the user cancels the logout
+        if(user.role==="ProjectManager"){
+          navigate("/calender");
+        }
+        else{
+          navigate("/CalendarEmployee");
+        }
       }
     };
 
@@ -219,8 +226,9 @@ export default function App() {
           {/* Public Routes */}
           <Route path="/authentication/sign-in" element={<SignIn />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/change-password/:userID" element={<ChangePassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/change-Employeepassword/:userID" element={<EmployeeChangePassword />} />
+          <Route path="/change-Managerpassword/:ManagerID" element={<ProjectManagerChangePassword />} />
+
 
           {/* Protected Routes for All Users */}
           <Route element={<ProtectedRoute roles={[roles.projectManager, roles.employee]} />}>
@@ -231,6 +239,7 @@ export default function App() {
           </Route>
           {/* Protected Routes for ProjectManager Role */}
           <Route element={<ProtectedRoute roles={[roles.projectManager]} />}>
+            <Route path="/manager/:managerId" element={<Profile />}/>
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/EmployeeProfiles" element={<EmployeeProfiles />} />
             <Route path="/authentication/sign-up" element={<SignUp />} />

@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import SearchIcon from '@mui/icons-material/Search';
 import EmployeeService from "../../../_services/EmployeeService";
-import UserService from "../../../_services/ProjectManagerService";
 import ArgonTypography from "../../../components/ArgonTypography";
 import Footer from "../../../examples/Footer";
 import ArgonBox from "../../../components/ArgonBox";
@@ -23,12 +22,13 @@ import ListItemText from "@mui/material/ListItemText";
 import DialogActions from "@mui/material/DialogActions";
 import AuthService from "../../../_services/AuthService";
 import RequestService from "../../../_services/RequestService";
+import ProjectManagerService from "../../../_services/ProjectManagerService";
 
 const employeeService = new EmployeeService();
 const authService = new AuthService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 const requestService = new RequestService();
-
+const UserService = new ProjectManagerService();
 const useStyles = makeStyles((theme) => ({
   card: {
     boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
@@ -256,6 +256,20 @@ const Empolyee = () => {
   const indexOfFirstRequest = indexOfLastRequest - rowsPerPage;
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
 
+  const getBusinessDaysCount = (startDate, endDate) => {
+    let count = 0;
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+      const dayOfWeek = currentDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        count++;
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return count;
+  };
 
 
 
@@ -354,8 +368,10 @@ const Empolyee = () => {
                     <span style={{ fontWeight: "bold" }}>{format(new Date(request.endDate), "dd-MM-yyyy")}</span>
                   </td>
                   <td
-                    style={{ textAlign: "center" }}>{differenceInDays(parseISO(request.endDate), parseISO(request.startDate)) + 1}
+                    style={{ textAlign: "center" }}>
+                    {getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate)) }
                   </td>
+
                   <td style={{ textAlign: "center" }}>
                     <div className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}>
                       {Status[request.status]}
@@ -374,9 +390,11 @@ const Empolyee = () => {
                         <Edit />
                       </IconButton>
                     )}
-                    <IconButton onClick={() => handleDelete(request.requestId)}>
-                      <Delete />
-                    </IconButton>
+                    {request.status !== 1 && request.status !== 3 && (
+                      <IconButton onClick={() => handleDelete(request.requestId)}>
+                        <Delete />
+                      </IconButton>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -384,7 +402,7 @@ const Empolyee = () => {
             </table>
 
             <Container className={classes.pagination}>
-              <Pagination
+            <Pagination
                 count={Math.ceil(filteredRequests.length / rowsPerPage)}
                 page={currentPage}
                 onChange={handlePageChange}
@@ -454,9 +472,11 @@ const Empolyee = () => {
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
                 <ListItemText
                   primary="Duration"
-                  secondary={`${differenceInDays(parseISO(selectedRequest.endDate), parseISO(selectedRequest.startDate)) + 1} days`}
+                  secondary={`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate)) } days`}
                 />
               </ListItem>
+
+
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
                 <ListItemText
                   primary="Employee Comment"

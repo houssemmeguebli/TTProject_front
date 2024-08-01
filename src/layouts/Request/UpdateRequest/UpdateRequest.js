@@ -8,15 +8,19 @@ import {
   Typography,
   MenuItem,
   Select,
-  FormControl, OutlinedInput, InputAdornment, InputLabel,
+  FormControl,
+  CircularProgress,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
 import RequestService from '../../../_services/RequestService';
 import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
 import DashboardNavbar from '../../../examples/Navbars/DashboardNavbar';
 import Swal from "sweetalert2";
+import EmployeeService from "../../../_services/EmployeeService";
+import EmailService from "../../../_services/EmailService";
 
 const requestService = new RequestService();
+const employeeService = new EmployeeService();
 const bgImage =
   'https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg';
 
@@ -46,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   textField: {
-    width :"100%",
+    width: "100%",
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: theme.palette.primary.main,
@@ -87,16 +91,18 @@ const useStyles = makeStyles((theme) => ({
 const UpdateRequest = () => {
   const classes = useStyles();
   const { requestId } = useParams();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [request, setRequest] = useState({
     status: '',
     startDate: '',
     endDate: '',
-    note: '', // Add note field to request state
+    note: '',
   });
 
   const [originalRequest, setOriginalRequest] = useState({});
   const [isNoteRequired, setIsNoteRequired] = useState(false);
+  const [employee, setEmployee] = useState(null);
 
   const statuses = [
     { value: 1, label: 'Approved' },
@@ -111,13 +117,15 @@ const UpdateRequest = () => {
           ...response,
           startDate: response.startDate.split('T')[0],
           endDate: response.endDate.split('T')[0],
-          note: response.note || '', // Initialize note from the response
+          note: response.note || '',
         });
         setOriginalRequest({
           ...response,
           startDate: response.startDate.split('T')[0],
           endDate: response.endDate.split('T')[0],
         });
+        const employeeData = await employeeService.getEmployeeById(response.userId);
+        setEmployee(employeeData);
       } catch (error) {
         console.error('Error fetching request:', error);
       }
@@ -135,7 +143,6 @@ const UpdateRequest = () => {
       [name]: value,
     }));
 
-    // Check if startDate or endDate has been changed to set note required
     if (name === "startDate" || name === "endDate") {
       setIsNoteRequired(true);
       const oldStartDate = originalRequest.startDate;
@@ -159,9 +166,22 @@ const UpdateRequest = () => {
     });
 
     if (result.isConfirmed) {
-      console.log('Request data before update:', request);
+      setLoading(true);
+
       try {
         await requestService.updateRequest(requestId, request);
+
+        if (employee) {
+          await EmailService.sendRequestUpdateEmail(employee.email, {
+            startDate: request.startDate,
+            endDate: request.endDate,
+            comment: request.comment,
+            status: request.status,
+            note: request.note,
+            userName: employee.firstName,
+          });
+        }
+
         Swal.fire("Saved!", "", "success");
         navigate('/requests');
       } catch (error) {
@@ -170,6 +190,8 @@ const UpdateRequest = () => {
           console.error('Server response:', error.response.data);
         }
         Swal.fire("Error!", "There was a problem updating your request.", "error");
+      } finally {
+        setLoading(false);
       }
     } else if (result.isDenied) {
       Swal.fire("Changes are not saved", "", "info");
@@ -200,7 +222,7 @@ const UpdateRequest = () => {
           <Typography variant="h4" gutterBottom className={classes.title}>
             Update Request
           </Typography>
-          <form className={classes.form} onSubmit={handleSubmit} >
+          <form className={classes.form} onSubmit={handleSubmit}>
             <div>
               <Typography className={classes.label}>Start Date</Typography>
               <TextField
@@ -212,23 +234,6 @@ const UpdateRequest = () => {
                 className={classes.textField}
                 InputLabelProps={{
                   shrink: true,
-                }}
-                sx={{
-                  width: "100%",
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
                 }}
               />
             </div>
@@ -244,78 +249,26 @@ const UpdateRequest = () => {
                 InputLabelProps={{
                   shrink: true,
                 }}
-                sx={{
-                  width: "100%",
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
               />
             </div>
             <div>
               <Typography className={classes.label}>Status</Typography>
-              <FormControl    sx={{
-                width: "100%",
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.primary.main,
-                  },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '& .MuiInputBase-input': {
-                    width: '100% !important',
-                  },
-                },
-              }}>
+              <FormControl fullWidth>
                 <Select
-
                   name="status"
                   value={request.status}
                   onChange={handleChange}
                   className={classes.textField}
-                  sx={{
-                    width: "100%",
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: theme => theme.palette.primary.main,
-                      },
-                      '&:hover fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: theme => theme.palette.primary.dark,
-                      },
-                      '& .MuiInputBase-input': {
-                        width: '100% !important',
-                      },
-                    },
-                  }}
                 >
                   {statuses.map((status) => (
-                    <MenuItem key={status.value} value={status.value}
-                    >
+                    <MenuItem key={status.value} value={status.value}>
                       {status.label}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </div>
-            <div >
+            <div>
               <Typography className={classes.label}>Note</Typography>
               <TextField
                 name="note"
@@ -326,43 +279,15 @@ const UpdateRequest = () => {
                 placeholder={isNoteRequired ? "If you change, explain here" : ""}
                 className={classes.textField}
                 multiline
-                rows={4} // Adjust height as needed
+                rows={4}
                 fullWidth
-                variant="outlined" // Ensure outlined style
-                sx={{
-                  width: "100%",
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
+                variant="outlined"
               />
-
             </div>
-
-
             <Button type="submit" variant="contained" className={classes.button}>
-              Update
+              {loading ? <CircularProgress size={24} /> : 'Save'}
             </Button>
           </form>
-          <div className={classes.notes}>
-            <Typography variant="h6">Important Notes:</Typography>
-            <Typography variant="body2">
-              - If approved, the employee will be notified automatically.
-              <br />
-              - Ensure all dates are correctly set before submitting.
-            </Typography>
-          </div>
         </Paper>
       </Container>
     </DashboardLayout>

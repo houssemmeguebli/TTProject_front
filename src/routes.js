@@ -65,6 +65,7 @@ const Logout = () => {
 
 
 const routes = [
+  /*
   {
     type: "route",
     name: "Dashboard",
@@ -74,6 +75,8 @@ const routes = [
     component: <Dashboard />,
     roles: ["ProjectManager","Employee"],
   },
+
+   */
   {
     type: "route",
     name: "Calendar",
@@ -131,7 +134,17 @@ const routes = [
     route: `/employee/${currentUser?.id || ""}`,
     icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
     component: <DetailsEmp />,
-    roles: ["ProjectManager", "Employee"],
+    roles: ["Employee"],
+
+  },
+  {
+    type: "route",
+    name: "My Profile ",
+    key: "profileManager",
+    route: `/manager/${currentUser?.id || ""}`,
+    icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
+    component: <Profile />,
+    roles: ["ProjectManager"],
 
   },
   {
@@ -143,15 +156,7 @@ const routes = [
     component: <EmployeeProfiles />,
     roles: ["ProjectManager"],
   },
-  {
-    type: "route",
-    name: "Add New Empolyee",
-    key: "sign-up",
-    route: "/authentication/sign-up",
-    icon: <ArgonBox component="i" color="info" fontSize="14px" className="ni ni-collection" />,
-    component: <SignUp />,
-    roles: ["ProjectManager"],
-  },
+
   {
     type: "route",
     name: "Logout",

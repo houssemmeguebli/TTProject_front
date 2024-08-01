@@ -8,13 +8,14 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { makeStyles } from '@mui/styles';
 import DashboardLayout from '../examples/LayoutContainers/DashboardLayout';
 import RequestService from '../_services/RequestService';
-import UserService from "../_services/ProjectManagerService";
 import DashboardNavbar from "../examples/Navbars/DashboardNavbar";
 import ArgonBox from "../components/ArgonBox";
 import Footer from "../examples/Footer";
+import ProjectManagerService from "../_services/ProjectManagerService";
 
 const requestService = new RequestService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
+const userService = new ProjectManagerService();
 
 const useStyles = makeStyles((theme) => ({
   upcomingEventsSection: {
@@ -41,6 +42,22 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.grey[200],
     borderRadius: '8px',
   },
+  eventPending: {
+    backgroundColor: '#ffeb3b !important', // Pending
+    borderColor: '#ffeb3b !important',
+  },
+  eventApproved: {
+    backgroundColor: '#4caf50 !important', // Approved
+    borderColor: '#4caf50 !important',
+  },
+  eventUpdated: {
+    backgroundColor: '#2196f3 !important', // Updated
+    borderColor: '#2196f3 !important',
+  },
+  eventRejected: {
+    backgroundColor: '#f44336 !important', // Rejected
+    borderColor: '#f44336 !important',
+  }
 }));
 
 const Calendar = () => {
@@ -50,7 +67,7 @@ const Calendar = () => {
 
   const fetchUsers = async (userIds) => {
     try {
-      const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
+      const responses = await Promise.all(userIds.map(userId => userService.getUserById(userId)));
       const users = responses.reduce((acc, data) => {
         if (data && data.userId) {
           acc[data.userId] = {
@@ -62,34 +79,43 @@ const Calendar = () => {
       }, {});
       setUserMap(users);
     } catch (error) {
-      console.error('Erreur lors de la récupération des utilisateurs :', error);
+      console.error('Error fetching users:', error);
     }
   };
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
+        // Helper function to check if a date is a weekday
+        const isWeekday = (date) => !(date.getDay() === 0 || date.getDay() === 6);
+
         const result = await requestService.getAllRequests();
         if (result && Array.isArray(result.$values)) {
           const requestsData = result.$values;
           await fetchUsers(requestsData.map(request => request.userId));
 
-          const eventsData = requestsData.map(request => {
+          // Generate events, excluding weekends
+          const eventsData = requestsData.reduce((acc, request) => {
             const startDate = parseISO(request.startDate);
             const endDate = parseISO(request.endDate);
             const duration = differenceInDays(endDate, startDate);
             const user = userMap[request.userId] || { firstName: 'Unknown', lastName: '' };
-            const statusColor = getStatusColor(request.status);
+            const statusClass = getStatusClass(request.status);
             const statusType = getStatusType(request.status);
 
-            return {
-              title: `${user.firstName} ${user.lastName} - ${statusType} - Duration: ${duration} days`,
-              start: request.startDate,
-              end: request.endDate,
-              backgroundColor: statusColor,
-              borderColor: statusColor,
-            };
-          });
+            for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+              if (isWeekday(date)) {
+                acc.push({
+                  title: `${user.firstName} ${user.lastName} - ${statusType} - Duration: ${duration} days`,
+                  start: new Date(date).toISOString(),
+                  end: new Date(date).toISOString()+1,
+                  className: statusClass,
+                });
+              }
+            }
+
+            return acc;
+          }, []);
 
           setEvents(eventsData);
         } else {
@@ -103,13 +129,13 @@ const Calendar = () => {
     fetchRequests();
   }, [userMap]);
 
-  const getStatusColor = (status) => {
+  const getStatusClass = (status) => {
     switch (status) {
-      case 0: return '#ffeb3b'; // Pending
-      case 1: return '#4caf50'; // Approved
-      case 2: return '#2196f3'; // Updated
-      case 3: return '#f44336'; // Rejected
-      default: return '#9e9e9e'; // Default color
+      case 0: return classes.eventPending; // Pending
+      case 1: return classes.eventApproved; // Approved
+      case 2: return classes.eventUpdated; // Updated
+      case 3: return classes.eventRejected; // Rejected
+      default: return ''; // Default class
     }
   };
 
@@ -147,6 +173,11 @@ const Calendar = () => {
               right: 'dayGridMonth,timeGridWeek,timeGridDay'
             }}
             sx={{ marginTop: 2 }}
+            dayCellDidMount={(info) => {
+              if (info.date.getDay() === 0 || info.date.getDay() === 6) {
+                info.el.style.backgroundColor = '#f5f5f5'; // Light gray for weekends
+              }
+            }}
           />
 
           {/* Upcoming Events Section */}
@@ -211,7 +242,6 @@ const Calendar = () => {
         </Paper>
       </Container>
       <Footer />
-
     </DashboardLayout>
   );
 };

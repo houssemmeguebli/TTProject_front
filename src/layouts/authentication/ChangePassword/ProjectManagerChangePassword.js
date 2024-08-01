@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import ArgonBox from "components/ArgonBox";
 import ArgonInput from "components/ArgonInput";
 import ArgonButton from "components/ArgonButton";
-import IllustrationLayout from "layouts/authentication/components/IllustrationLayout";
 import Swal from "sweetalert2";
 import AuthService from "../../../_services/AuthService";
-import EmployeeService from "../../../_services/EmployeeService";
 import ProjectManagerService from "../../../_services/ProjectManagerService";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useParams, useNavigate } from "react-router-dom";
+import IllustrationLayout from "../components/IllustrationLayout";
 
 const authService = new AuthService();
-const employeeService = new EmployeeService();
 const projectManagerService = new ProjectManagerService();
-
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signin-ill.jpg";
 
-function ChangePassword() {
+function ProjectManagerChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -24,33 +21,26 @@ function ChangePassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [user, setUser] = useState(null);
-  const [isManager, setIsManager] = useState(false);
 
-  const { userID } = useParams();
+  const { ManagerID } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userData = await employeeService.getEmployeeById(userID);
+        const userData = await projectManagerService.getUserWithId(ManagerID);
         if (userData) {
           setUser(userData);
-          setIsManager(false);
-        } else {
-          const managerData = await projectManagerService.getUserWithId(userID);
-          console.log(managerData)
-          setUser(managerData);
-          setIsManager(true);
         }
       } catch (error) {
-        console.log(error);
+        console.log("Error fetching project manager by ID:", error);
       }
     };
 
-    if (userID) {
+    if (ManagerID) {
       fetchUser();
     }
-  }, [userID]);
+  }, [ManagerID]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -59,20 +49,20 @@ function ChangePassword() {
       return;
     }
     try {
-      if (!userID) {
+      if (!ManagerID) {
         throw new Error("User ID is required.");
       }
-      // Perform password change
-      await authService.changePassword(userID, currentPassword, newPassword, confirmNewPassword);
+      await authService.changePassword(ManagerID, currentPassword, newPassword, confirmNewPassword);
+
       const updatedUser = {
-        ...user,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        department: user.department,
         userStatus: 1,
+        projectName: user.projectName,
       };
-      if (isManager) {
-        await projectManagerService.updateProjectManager(userID, updatedUser);
-      } else {
-        await employeeService.updateEmployee(userID, updatedUser);
-      }
+
+      await projectManagerService.updateProjectManager(ManagerID, updatedUser);
       Swal.fire("Success!", "Password changed successfully. Please sign in again.", "success");
       navigate("/authentication/sign-in");
     } catch (error) {
@@ -155,4 +145,4 @@ function ChangePassword() {
   );
 }
 
-export default ChangePassword;
+export default ProjectManagerChangePassword;

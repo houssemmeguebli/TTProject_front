@@ -14,7 +14,6 @@ import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
 import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
 import Footer from '../../examples/Footer';
 import RequestService from '../../_services/RequestService';
-import UserService from '../../_services/ProjectManagerService';
 import { makeStyles } from '@mui/styles';
 import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
@@ -28,8 +27,10 @@ import DialogActions from '@mui/material/DialogActions';
 import ListItemText from "@mui/material/ListItemText";
 import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
+import ProjectManagerService from "../../_services/ProjectManagerService";
 
 const requestService = new RequestService();
+const UserService = new ProjectManagerService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
 
@@ -304,6 +305,20 @@ const Index = () => {
   });
 
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
+  const getBusinessDaysCount = (startDate, endDate) => {
+    let count = 0;
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+      const dayOfWeek = currentDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        count++;
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return count;
+  };
 
   return (
 
@@ -411,7 +426,10 @@ const Index = () => {
                     <span style={{ margin: "0 10px" }}>To</span>
                     <span style={{fontWeight: "bold"}}>{format(new Date(request.endDate), 'dd-MM-yyyy')}</span>
                   </td>
-                  <td style={{ textAlign: "center" }}>{differenceInDays(parseISO(request.endDate), parseISO(request.startDate))+1}</td>
+                  <td
+                    style={{ textAlign: "center" }}>
+                    {getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}
+                  </td>
                   <td style={{ textAlign: "center" }}>
                       <span
                         className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}
@@ -563,7 +581,7 @@ const Index = () => {
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
                 <ListItemText
                   primary="Duration"
-                  secondary={`${differenceInDays(parseISO(selectedRequest.endDate), parseISO(selectedRequest.startDate)) + 1} days`}
+                  secondary={`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate)) } days`}
                 />
               </ListItem>
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>

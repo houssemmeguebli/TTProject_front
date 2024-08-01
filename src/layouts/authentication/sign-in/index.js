@@ -53,7 +53,11 @@ function SignIn() {
               icon: 'warning',
               confirmButtonText: 'OK',
             }).then(() => {
-              navigate(`/change-password/${userId}`);
+              if(role==="Employee"){
+                navigate(`/change-Employeepassword/${userId}`);
+              }else{
+                navigate(`/change-Managerpassword/${userId}`);
+              }
             });
           } else {
             Swal.fire({
@@ -74,7 +78,7 @@ function SignIn() {
                 default:
                   navigate('/dashboard');
               }
-              window.location.reload(); // Ensure the page refreshes after navigation
+              window.location.reload();
             });
           }
         } catch (userDetailsError) {

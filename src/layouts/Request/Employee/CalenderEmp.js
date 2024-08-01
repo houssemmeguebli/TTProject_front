@@ -81,20 +81,32 @@ const CalendarEmp = () => {
         if (result && Array.isArray(result.$values)) {
           const requestsData = result.$values;
 
-          const eventsData = requestsData.map(request => {
+          // Helper function to check if a date is a weekday
+          const isWeekday = (date) => !(date.getDay() === 0 || date.getDay() === 6);
+
+          // Generate events, excluding weekends
+          const eventsData = requestsData.reduce((acc, request) => {
             const startDate = parseISO(request.startDate);
             const endDate = parseISO(request.endDate);
-            const duration = differenceInDays(endDate, startDate);
-            const statusClass = getStatusClass(request.status);
-            const statusType = getStatusType(request.status);
 
-            return {
-              title: `${userResponse.firstName} ${userResponse.lastName} - ${statusType} - Duration: ${duration} days` ,
-              start: request.startDate,
-              end: request.endDate,
-              className: statusClass,
-            };
-          });
+            // Generate dates between start and end
+            for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+              if (isWeekday(date)) {
+                const duration = differenceInDays(endDate, startDate);
+                const statusClass = getStatusClass(request.status);
+                const statusType = getStatusType(request.status);
+
+                acc.push({
+                  title: `${statusType} -${duration} days`,
+                  start: new Date(date).toISOString(),
+                  end: new Date(date).toISOString() ,
+                  className: statusClass,
+                });
+              }
+            }
+
+            return acc;
+          }, []);
 
           setEvents(eventsData);
         } else {
@@ -126,6 +138,14 @@ const CalendarEmp = () => {
     }
   };
 
+  const filteredEvents = events.filter(event => {
+    const startDate = new Date(event.start);
+    return startDate.getDay() !== 0 && startDate.getDay() !== 6;
+  });
+
+  const approvedRequests = filteredEvents.filter(e => e.status === 1).length;
+  const pendingRequests = filteredEvents.filter(e => e.status === 0).length;
+
   return (
     <DashboardLayout
       sx={{
@@ -143,20 +163,25 @@ const CalendarEmp = () => {
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
-            events={events}
+            events={filteredEvents}
             headerToolbar={{
               left: 'prev,next today',
               center: 'title',
               right: 'dayGridMonth,timeGridWeek,timeGridDay'
             }}
             sx={{ marginTop: 2 }}
+            dayCellDidMount={(info) => {
+              if (info.date.getDay() === 0 || info.date.getDay() === 6) {
+                info.el.style.backgroundColor = '#f5f5f5'; // Light gray for weekends
+              }
+            }}
           />
 
           {/* Upcoming Events Section */}
           <ArgonBox className={classes.upcomingEventsSection}>
             <Typography variant="h6">Upcoming Events</Typography>
             <ul>
-              {events.slice(0, 5).map(event => (
+              {filteredEvents.slice(0, 5).map(event => (
                 <li key={event.start}>
                   <Typography variant="body2">{event.title} on {new Date(event.start).toLocaleDateString()}</Typography>
                 </li>
@@ -169,13 +194,13 @@ const CalendarEmp = () => {
             <Typography variant="h6">Request Summary</Typography>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <Typography variant="body2">Total Requests: {events.length}</Typography>
+                <Typography variant="body2">Total Requests: {filteredEvents.length}</Typography>
               </Grid>
               <Grid item xs={4}>
-                <Typography variant="body2">Approved: {events.filter(e => e.status === 1).length}</Typography>
+                <Typography variant="body2">Approved: {approvedRequests}</Typography>
               </Grid>
               <Grid item xs={4}>
-                <Typography variant="body2">Pending: {events.filter(e => e.status === 0).length}</Typography>
+                <Typography variant="body2">Pending: {pendingRequests}</Typography>
               </Grid>
             </Grid>
           </ArgonBox>

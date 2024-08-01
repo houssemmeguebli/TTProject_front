@@ -10,7 +10,7 @@ import {
   Autocomplete,
   FormControl,
   FormHelperText,
-  Box,
+  Box, CircularProgress,
 } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import RequestService from "../../../_services/RequestService";
@@ -18,6 +18,9 @@ import EmployeeService from "../../../_services/EmployeeService";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
+import DatePicker from "react-datepicker";
+import 'react-datepicker/dist/react-datepicker.css';
+import EmailService from "../../../_services/EmailService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
@@ -25,8 +28,8 @@ const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-as
 
 const Index = ({ onSubmit }) => {
   const [request, setRequest] = useState({
-    startDate: '',
-    endDate: '',
+    startDate: new Date(),
+    endDate: new Date(),
     comment: '',
     userId: '',
   });
@@ -36,6 +39,8 @@ const Index = ({ onSubmit }) => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [touched, setTouched] = useState({});
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -72,21 +77,25 @@ const Index = ({ onSubmit }) => {
   };
 
   const handleUserChange = (event, value) => {
+    const selectedUserId = value ? value.id : '';
+
     setRequest(prevRequest => ({
       ...prevRequest,
-      userId: value ? value.id : '',
+      userId: selectedUserId,
     }));
     setTouched(prevTouched => ({
       ...prevTouched,
       userId: true,
     }));
+
+    console.log('Selected user ID:', selectedUserId);
   };
 
-  const handleDateChange = (e) => {
-    const { name, value } = e.target;
+
+  const handleDateChange = (name, date) => {
     setRequest(prevRequest => ({
       ...prevRequest,
-      [name]: value,
+      [name]: date,
     }));
     setTouched(prevTouched => ({
       ...prevTouched,
@@ -94,9 +103,10 @@ const Index = ({ onSubmit }) => {
     }));
   };
 
-  const disableWeekends = (date) => {
-    const day = new Date(date).getDay();
-    return day === 0 || day === 6;
+  const today = new Date().toISOString().split('T')[0];
+
+  const disWeekends = (current) => {
+    return current.getDay() !== 0 && current.getDay() !== 6;
   };
 
   const validateDates = () => {
@@ -125,23 +135,37 @@ const Index = ({ onSubmit }) => {
     return Object.keys(errors).length === 0;
   };
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm(request)) {
       return;
     }
+    setLoading(true);
     try {
       await requestService.createRequest(request, 0);
 
-      Swal.fire({
-        title: "Success!",
-        text: "Your request has been submitted successfully.",
-        icon: "success"
+      const selectedUser = users.find(user => user.id === request.userId);
+      const userEmail = selectedUser ? selectedUser.email : '';
+      const userName= selectedUser? selectedUser.firstName:'';
+      console.log("email", userEmail);
+
+      await EmailService.sendRequestEmail(userEmail, {
+        userName: userName,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        comment: request.comment,
       });
 
+      Swal.fire({
+        title: "Success!",
+        text: "Your request has been submitted and an email has been sent to the selected employee.",
+        icon: "success"
+      });
       setRequest({
-        startDate: '',
-        endDate: '',
+        startDate: new Date(),
+        endDate: new Date(),
         comment: '',
         userId: '',
       });
@@ -155,6 +179,8 @@ const Index = ({ onSubmit }) => {
         text: "There was a problem submitting your request.",
         icon: "error"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,34 +209,25 @@ const Index = ({ onSubmit }) => {
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth error={!!(errors.startDate && touched.startDate)} sx={{ mb: 2 }}>
                   <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Start Date</Typography>
-                  <TextField
-                    name="startDate"
-                    type="date"
-                    value={request.startDate}
-                    onChange={handleDateChange}
-                    fullWidth
-                    required
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      inputProps: { min: new Date().toISOString().split('T')[0], disabled: disableWeekends(request.startDate) },
-                    }}
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}
+                  <DatePicker
+                    selected={request.startDate}
+                    onChange={(date) => handleDateChange('startDate', date)}
+                    dateFormat="dd-MM-yyyy"
+                    minDate={new Date(today)}
+                    filterDate={disWeekends}
+                    customInput={
+                      <TextField
+                        name="startDate"
+                        type="text"
+                        value={request.startDate ? request.startDate.toISOString().split('T')[0] : ''}
+                        fullWidth
+                        required
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          readOnly: true // prevents manual input
+                        }}
+                      />
+                    }
                   />
                   {errors.startDate && touched.startDate && <FormHelperText>{errors.startDate}</FormHelperText>}
                 </FormControl>
@@ -218,34 +235,26 @@ const Index = ({ onSubmit }) => {
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth error={!!(errors.endDate && touched.endDate)} sx={{ mb: 2 }}>
                   <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>End Date</Typography>
-                  <TextField
-                    name="endDate"
-                    type="date"
-                    value={request.endDate}
-                    onChange={handleDateChange}
-                    fullWidth
-                    required
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      inputProps: { min: request.startDate, disabled: disableWeekends(request.endDate) },
-                    }}
-                    sx={{
-                      marginTop: 1,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme => theme.palette.primary.main,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: theme => theme.palette.primary.dark,
-                        },
-                        '& .MuiInputBase-input': {
-                          width: '100% !important',
-                        },
-                      },
-                    }}                               />
+                  <DatePicker
+                    selected={request.endDate}
+                    onChange={(date) => handleDateChange('endDate', date)}
+                    dateFormat="dd-MM-yyyy"
+                    minDate={request.startDate || new Date(today)}
+                    filterDate={disWeekends}
+                    customInput={
+                      <TextField
+                        name="endDate"
+                        type="text"
+                        value={request.endDate ? request.endDate.toISOString().split('T')[0] : ''}
+                        fullWidth
+                        required
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          readOnly: true // prevents manual input
+                        }}
+                      />
+                    }
+                  />
                   {errors.endDate && touched.endDate && <FormHelperText>{errors.endDate}</FormHelperText>}
                 </FormControl>
               </Grid>
@@ -277,7 +286,8 @@ const Index = ({ onSubmit }) => {
                           width: '100% !important',
                         },
                       },
-                    }}                               />
+                    }}
+                  />
                   {errors.comment && touched.comment && <FormHelperText>{errors.comment}</FormHelperText>}
                 </FormControl>
               </Grid>
@@ -310,7 +320,8 @@ const Index = ({ onSubmit }) => {
                               width: '100% !important',
                             },
                           },
-                        }}                               />
+                        }}
+                      />
                     )}
                   />
                   {errors.userId && touched.userId && <FormHelperText>{errors.userId}</FormHelperText>}
@@ -321,10 +332,10 @@ const Index = ({ onSubmit }) => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={!isFormValid}
-                  sx={{ minWidth: 200 }}
+                  sx={{ minWidth: 150 }}
+                  disabled={loading}
                 >
-                  Submit
+                  {loading ? <CircularProgress size={24} /> : 'Submit'}
                 </Button>
               </Grid>
             </Grid>

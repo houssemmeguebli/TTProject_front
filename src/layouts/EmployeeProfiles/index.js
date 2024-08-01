@@ -295,7 +295,7 @@ const EmployeeTable = () => {
       case UserStatus.ACTIVE:
         return 'ACTIVE';
       case UserStatus.SUSPENDED:
-        return 'Suspended';
+        return 'SUSPENDED';
       default:
         return 'Unknown Status';
     }
@@ -385,9 +385,6 @@ const EmployeeTable = () => {
                         </IconButton>
                       )}
 
-                      <IconButton onClick={() => handleDelete(employee.id)} color="error">
-                        <Delete />
-                      </IconButton>
                     </td>
                   </tr>
                 ))}

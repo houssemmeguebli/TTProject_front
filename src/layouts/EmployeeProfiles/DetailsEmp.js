@@ -26,7 +26,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 const employeeService = new EmployeeService();
 const authService = new AuthService();
-
+const connectedUser = authService.getCurrentUser();
 const bgImage =
   "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
@@ -113,7 +113,12 @@ const useStyles = makeStyles((theme) => ({
     border: `1px solid ${theme.palette.divider}`,
   },
 }));
+/*
+const handleChangePasswordClick = () => {
+  navigate(`/change-password/${connectedUser.id}`);
+};
 
+ */
 const role = {
   0: 'Project Manager',
   1: 'Employee',
@@ -256,16 +261,16 @@ const DetailsEmp = () => {
         <Card className={classes.card}>
           <Box className={classes.profileHeader}>
             <Avatar
-              src={employee?.profilePicture || '/path/to/default/avatar.jpg'}
+              src={employee?.profilePicture || "/path/to/default/avatar.jpg"}
               className={classes.profileAvatar}
             />
             <Box className={classes.profileInfo}>
               <Typography variant="h4">{`${employee?.firstName} ${employee?.lastName}`}</Typography>
               <Typography variant="body1" color="textSecondary">{employee?.email}</Typography>
               <Typography variant="body2" color="textSecondary">{employee?.phoneNumber}</Typography>
-              <Typography variant="body2" color="textSecondary"><strong>Role:</strong> {role[employee?.role]}</Typography>
+              <Typography variant="body2" color="textSecondary"><strong>Role:</strong> {role[employee?.role]}
+              </Typography>
             </Box>
-
           </Box>
           <Divider />
           <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
