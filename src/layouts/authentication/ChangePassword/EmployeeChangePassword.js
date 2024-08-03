@@ -25,7 +25,6 @@ function EmployeeChangePassword() {
 
   const { userID } = useParams();
   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchUser = async () => {
       try {

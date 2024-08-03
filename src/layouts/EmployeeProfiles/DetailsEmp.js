@@ -170,6 +170,7 @@ const DetailsEmp = () => {
           department: employeeData.department || '',
           position: employeeData.position || '',
           dateOfbirth: employeeData.dateOfbirth || '',
+          userStatus:employeeData.userStatus,
         });
 
         // Fetch requests by employee ID

@@ -1,6 +1,5 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'https://localhost:7157/api/Employee';
+import axios from './Instance';
+const API_BASE_URL = '/Employee';
 
 class EmployeeService {
   constructor(baseUrl = API_BASE_URL) {

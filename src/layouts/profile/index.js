@@ -167,6 +167,7 @@ const DetailsManager = () => {
           department: employeeData.department || '',
           projectName: employeeData.projectName || '',
           dateOfbirth: employeeData.dateOfbirth || '',
+          userStatus:employeeData.userStatus,
         });
 
         try {

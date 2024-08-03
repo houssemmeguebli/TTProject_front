@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from './Instance';
 
 // Définir l'URL de base de votre API
-const API_BASE_URL = 'https://localhost:7157/api/Email';
+const API_BASE_URL = '/Email';
 
 class EmailService {
   async sendEmail(toEmail, firstName, password) {

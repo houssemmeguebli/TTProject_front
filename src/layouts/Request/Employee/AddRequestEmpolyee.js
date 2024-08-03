@@ -10,7 +10,6 @@ import {
   FormControl,
   FormHelperText,
   CircularProgress,
-  Box
 } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import RequestService from "../../../_services/RequestService";
@@ -112,12 +111,11 @@ const AddRequestEmp = ({ onSubmit }) => {
       const response = await projectManagerService.getAllUsers();
       console.log('Project Managers Response:', response);
 
-      // Access the project managers data correctly
-      const projectManagers = response.data?.$values || []; // Adjust to access $values array
-
+      const projectManagers = response.data?.$values || [];
       if (!Array.isArray(projectManagers)) {
         throw new Error("Project Managers data is not an array");
       }
+
       // Validate email addresses
       const validEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const managersEmails = projectManagers
@@ -127,16 +125,11 @@ const AddRequestEmp = ({ onSubmit }) => {
       if (managersEmails.length === 0) {
         throw new Error("No valid email addresses found.");
       }
-      // Extract emails from the project managers
-      console.log("emails", managersEmails);
 
-      if (!Array.isArray(managersEmails)) {
-        throw new Error("Managers emails data is not an array");
-      }
       const emailDetails = {
         emails: managersEmails,
-        startDate: formValues.startDate,
-        endDate: formValues.endDate,
+        startDate: formValues.startDate.toISOString().split('T')[0],
+        endDate: formValues.endDate.toISOString().split('T')[0],
         comment: formValues.comment,
         userName: currentUser?.name || 'Unknown User',
         userEmail: currentUser?.email || 'unknown@example.com'
@@ -162,7 +155,7 @@ const AddRequestEmp = ({ onSubmit }) => {
       console.error('Error creating request:', error.response ? error.response.data : error.message);
       Swal.fire({
         title: "Error!",
-        text: "There was a problem creating your request.",
+        text: "There was a problem creating your request or in sending emails.",
         icon: "error"
       });
     } finally {

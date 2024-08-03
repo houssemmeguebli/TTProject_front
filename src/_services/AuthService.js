@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from './Instance';
 import { jwtDecode } from 'jwt-decode'; // Use named import correctly
 
-const API_BASE_URL = 'https://localhost:7157/api/Auth';
+const API_BASE_URL = '/Auth';
 
 class AuthService {
   constructor(baseUrl = API_BASE_URL) {

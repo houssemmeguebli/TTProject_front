@@ -10,6 +10,7 @@ import {
   Select,
   FormControl,
   CircularProgress,
+  FormHelperText,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
 import RequestService from '../../../_services/RequestService';
@@ -18,6 +19,8 @@ import DashboardNavbar from '../../../examples/Navbars/DashboardNavbar';
 import Swal from "sweetalert2";
 import EmployeeService from "../../../_services/EmployeeService";
 import EmailService from "../../../_services/EmailService";
+import DatePicker from "react-datepicker";
+import 'react-datepicker/dist/react-datepicker.css';
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
@@ -79,13 +82,6 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
     color: theme.palette.text.primary,
   },
-  notes: {
-    marginTop: theme.spacing(3),
-    backgroundColor: theme.palette.background.default,
-    padding: theme.spacing(2),
-    borderRadius: '8px',
-    boxShadow: theme.shadows[1],
-  },
 }));
 
 const UpdateRequest = () => {
@@ -93,15 +89,19 @@ const UpdateRequest = () => {
   const { requestId } = useParams();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
+  const [isNoteRequired, setIsNoteRequired] = useState(false);
+
   const [request, setRequest] = useState({
     status: '',
-    startDate: '',
-    endDate: '',
+    startDate: new Date(),
+    endDate: new Date(),
     note: '',
   });
+  const today = new Date().toISOString().split('T')[0];
 
   const [originalRequest, setOriginalRequest] = useState({});
-  const [isNoteRequired, setIsNoteRequired] = useState(false);
   const [employee, setEmployee] = useState(null);
 
   const statuses = [
@@ -115,14 +115,14 @@ const UpdateRequest = () => {
         const response = await requestService.getRequestById(requestId);
         setRequest({
           ...response,
-          startDate: response.startDate.split('T')[0],
-          endDate: response.endDate.split('T')[0],
+          startDate: new Date(response.startDate),
+          endDate: new Date(response.endDate),
           note: response.note || '',
         });
         setOriginalRequest({
           ...response,
-          startDate: response.startDate.split('T')[0],
-          endDate: response.endDate.split('T')[0],
+          startDate: new Date(response.startDate),
+          endDate: new Date(response.endDate),
         });
         const employeeData = await employeeService.getEmployeeById(response.userId);
         setEmployee(employeeData);
@@ -142,11 +142,21 @@ const UpdateRequest = () => {
       ...prevRequest,
       [name]: value,
     }));
+  };
 
+  const handleDateChange = (name, date) => {
+    setRequest(prevRequest => ({
+      ...prevRequest,
+      [name]: date,
+    }));
+    setTouched(prevTouched => ({
+      ...prevTouched,
+      [name]: true,
+    }));
     if (name === "startDate" || name === "endDate") {
       setIsNoteRequired(true);
-      const oldStartDate = originalRequest.startDate;
-      const oldEndDate = originalRequest.endDate;
+      const oldStartDate = originalRequest.startDate.toISOString().split('T')[0];
+      const oldEndDate = originalRequest.endDate.toISOString().split('T')[0];
       setRequest((prev) => ({
         ...prev,
         note: `Old Start Date: ${oldStartDate}, Old End Date: ${oldEndDate}. ${prev.note}`,
@@ -154,8 +164,34 @@ const UpdateRequest = () => {
     }
   };
 
+  const disWeekends = (current) => {
+    return current.getDay() !== 0 && current.getDay() !== 6;
+  };
+
+  const validateDates = () => {
+    const { startDate, endDate } = request;
+    return new Date(endDate) >= new Date(startDate);
+  };
+
+  const validateForm = (formValues) => {
+    const errors = {};
+    if (!formValues.startDate) {
+      errors.startDate = 'Start date is required';
+    }
+    if (!formValues.endDate) {
+      errors.endDate = 'End date is required';
+    } else if (!validateDates()) {
+      errors.endDate = 'End date must be after start date';
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm(request)) {
+      return;
+    }
 
     const result = await Swal.fire({
       title: "Do you want to save the changes?",
@@ -173,11 +209,10 @@ const UpdateRequest = () => {
 
         if (employee) {
           await EmailService.sendRequestUpdateEmail(employee.email, {
-            startDate: request.startDate,
-            endDate: request.endDate,
-            comment: request.comment,
-            status: request.status,
+            startDate: request.startDate.toISOString().split('T')[0],
+            endDate: request.endDate.toISOString().split('T')[0],
             note: request.note,
+            status: request.status,
             userName: employee.firstName,
           });
         }
@@ -186,9 +221,6 @@ const UpdateRequest = () => {
         navigate('/requests');
       } catch (error) {
         console.error(`Error updating request with ID ${requestId}:`, error);
-        if (error.response && error.response.data) {
-          console.error('Server response:', error.response.data);
-        }
         Swal.fire("Error!", "There was a problem updating your request.", "error");
       } finally {
         setLoading(false);
@@ -198,94 +230,126 @@ const UpdateRequest = () => {
     }
   };
 
-  useEffect(() => {
-    const isStartDateChanged = request.startDate !== originalRequest.startDate;
-    const isEndDateChanged = request.endDate !== originalRequest.endDate;
-    setIsNoteRequired(isStartDateChanged || isEndDateChanged);
-  }, [request.startDate, request.endDate, originalRequest]);
-
   return (
     <DashboardLayout
       sx={{
         backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
           `${linearGradient(
             rgba(gradients.info.main, 0.6),
-            rgba(gradients.info.state, 0.6)
+            rgba(gradients.info.state, 0.6),
           )}, url(${bgImage})`,
-        backgroundPositionY: '50%',
+        backgroundPositionY: "50%",
       }}
     >
       <DashboardNavbar />
-
-      <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh', marginTop: '8%' }}>
-        <Paper className={classes.paper} elevation={3}>
-          <Typography variant="h4" gutterBottom className={classes.title}>
+      <Container className={classes.container}>
+        <Paper className={classes.paper}>
+          <Typography variant="h4" className={classes.title}>
             Update Request
           </Typography>
-          <form className={classes.form} onSubmit={handleSubmit}>
-            <div>
+          <form onSubmit={handleSubmit} className={classes.form}>
+            <FormControl fullWidth error={!!(errors.startDate && touched.startDate)}>
               <Typography className={classes.label}>Start Date</Typography>
-              <TextField
-                name="startDate"
-                type="date"
-                value={request.startDate}
-                onChange={handleChange}
-                fullWidth
-                className={classes.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
+              <DatePicker
+                selected={request.startDate}
+                onChange={(date) => handleDateChange('startDate', date)}
+                dateFormat="dd-MM-yyyy"
+                minDate={new Date(today)}
+                filterDate={disWeekends}
+                customInput={
+                  <TextField
+                    name="startDate"
+                    type="text"
+                    value={request.startDate ? request.startDate.toISOString().split('T')[0] : ''}
+                    fullWidth
+                    required
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    className={classes.textField}
+                    onChange={() => {}}
+                  />
+                }
               />
-            </div>
-            <div>
+              <FormHelperText>{errors.startDate}</FormHelperText>
+            </FormControl>
+            <FormControl fullWidth error={!!(errors.endDate && touched.endDate)}>
               <Typography className={classes.label}>End Date</Typography>
-              <TextField
-                name="endDate"
-                type="date"
-                value={request.endDate}
-                onChange={handleChange}
-                fullWidth
-                className={classes.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
+              <DatePicker
+                selected={request.endDate}
+                onChange={(date) => handleDateChange('endDate', date)}
+                dateFormat="dd-MM-yyyy"
+                minDate={request.startDate}
+                filterDate={disWeekends}
+                customInput={
+                  <TextField
+                    name="endDate"
+                    type="text"
+                    value={request.endDate ? request.endDate.toISOString().split('T')[0] : ''}
+                    fullWidth
+                    required
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    className={classes.textField}
+                    onChange={() => {}}
+                  />
+                }
               />
-            </div>
-            <div>
+              <FormHelperText>{errors.endDate}</FormHelperText>
+            </FormControl>
+            <FormControl fullWidth>
               <Typography className={classes.label}>Status</Typography>
-              <FormControl fullWidth>
-                <Select
-                  name="status"
-                  value={request.status}
-                  onChange={handleChange}
-                  className={classes.textField}
-                >
-                  {statuses.map((status) => (
-                    <MenuItem key={status.value} value={status.value}>
-                      {status.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-            <div>
+              <Select
+                name="status"
+                value={request.status}
+                onChange={handleChange}
+                variant="outlined"
+                className={classes.textField}
+              >
+                {statuses.map((status) => (
+                  <MenuItem key={status.value} value={status.value}>
+                    {status.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
               <Typography className={classes.label}>Note</Typography>
               <TextField
                 name="note"
-                type="text"
-                value={request.note}
-                onChange={handleChange}
-                required={isNoteRequired}
-                placeholder={isNoteRequired ? "If you change, explain here" : ""}
-                className={classes.textField}
                 multiline
                 rows={4}
-                fullWidth
+                value={request.note}
+                onChange={handleChange}
                 variant="outlined"
+                className={classes.textField}
+                sx={{
+                  marginTop: 1,
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme => theme.palette.primary.main,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme => theme.palette.primary.dark,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme => theme.palette.primary.dark,
+                    },
+                    '& .MuiInputBase-input': {
+                      width: '100% !important',
+                    },
+                  },
+                }}
               />
-            </div>
-            <Button type="submit" variant="contained" className={classes.button}>
-              {loading ? <CircularProgress size={24} /> : 'Save'}
+            </FormControl>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
             </Button>
           </form>
         </Paper>

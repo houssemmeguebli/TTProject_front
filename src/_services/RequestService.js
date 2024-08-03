@@ -1,12 +1,11 @@
-import axios from 'axios';
+import axios from './Instance';
 
-const API_URL = 'https://localhost:7157/api/Request'; // Adjust the base URL as needed
+const API_URL = '/Request'; // Use relative URL as baseURL is set in axios instance
 
 class RequestService {
     constructor(baseUrl = API_URL) {
         this.baseUrl = baseUrl;
     }
-
 
     async getAllRequests() {
         try {
@@ -27,18 +26,17 @@ class RequestService {
             throw error;
         }
     }
+
     async createRequest(request, userRole) {
         try {
-            const response = await axios.post(`${this.baseUrl}/${userRole}`, request, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            const response = await axios.post(`${this.baseUrl}/${userRole}`, request);
             return response.data;
         } catch (error) {
+            console.error('Error creating request:', error);
             throw error;
         }
     }
+
     async deleteRequest(requestId) {
         try {
             await axios.delete(`${this.baseUrl}/${requestId}`);
@@ -59,7 +57,7 @@ class RequestService {
 
     async updateRequestStatus(requestId, statusUpdate) {
         try {
-            await axios.post(`${this.baseUrl}/requests/${requestId}/status`, statusUpdate);
+            await axios.put(`${this.baseUrl}/${requestId}/status`, statusUpdate); // Use PUT or POST based on API design
         } catch (error) {
             console.error(`Error updating status for request with ID ${requestId}:`, error);
             throw error;
@@ -67,5 +65,4 @@ class RequestService {
     }
 }
 
-export default  RequestService;
-
+export default RequestService;

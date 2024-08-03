@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from './Instance';
 
-const API_BASE_URL = 'https://localhost:7157/api/ProjectManager';
 
+const API_BASE_URL = '/ProjectManager';
 class ProjectManagerService {
   constructor(API_URL = API_BASE_URL) {
     this.API_URL = API_URL;

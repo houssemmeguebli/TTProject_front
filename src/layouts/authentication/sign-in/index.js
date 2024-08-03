@@ -30,8 +30,6 @@ function SignIn() {
         // Save the token
         localStorage.setItem('token', response.token);
         console.log('Token saved:', response.token);
-
-        // Fetch user ID, role, and status directly from AuthService
         try {
           const { userId, role, userStatus } = await authService.getUserIdByEmail(email);
           console.log('User details:', { userId, role, userStatus });
@@ -47,6 +45,9 @@ function SignIn() {
             });
           } else if (userStatus === 0) {
             console.log('User status is inactive, redirecting to change password');
+            localStorage.removeItem('token', response.token);
+
+
             Swal.fire({
               title: 'Change Password',
               text: 'You need to change your password on first login.',
@@ -55,8 +56,11 @@ function SignIn() {
             }).then(() => {
               if(role==="Employee"){
                 navigate(`/change-Employeepassword/${userId}`);
+
               }else{
                 navigate(`/change-Managerpassword/${userId}`);
+
+
               }
             });
           } else {
@@ -75,8 +79,6 @@ function SignIn() {
                   navigate('/CalendarEmployee');
                   window.location.reload();
                   break;
-                default:
-                  navigate('/dashboard');
               }
               window.location.reload();
             });

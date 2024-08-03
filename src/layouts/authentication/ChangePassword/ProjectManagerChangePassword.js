@@ -24,7 +24,6 @@ function ProjectManagerChangePassword() {
 
   const { ManagerID } = useParams();
   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
