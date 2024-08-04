@@ -1,6 +1,6 @@
 import axios from './Instance';
 
-const API_URL = '/Request'; // Use relative URL as baseURL is set in axios instance
+const API_URL = '/Request';
 
 class RequestService {
     constructor(baseUrl = API_URL) {
