@@ -154,8 +154,8 @@ const DetailsEmp = () => {
     const fetchEmployeeDetails = async () => {
       try {
         const currentUser = authService.getCurrentUser();
-        const userid = currentUser.id;  // Get the current user's role
-
+        const userid = currentUser.id;
+        console.log("role connected : ",currentUser.role)
         let employeeData, requestData;
 
         // Fetch employee details using EmployeeService
@@ -276,6 +276,7 @@ const DetailsEmp = () => {
           <Divider />
           <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
           <Grid container spacing={2}>
+
             <Grid item xs={12} md={6}>
               <TextField
                 label="First Name"
@@ -338,36 +339,6 @@ const DetailsEmp = () => {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
-                label="Email"
-                name="email"
-                variant="outlined"
-                fullWidth
-                value={formData.email}
-                onChange={handleInputChange}
-                disabled={!editing}
-                className={classes.formControl}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  marginTop: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
                 label="Date of Birth"
                 name="dateOfBirth"
                 variant="outlined"
@@ -397,37 +368,71 @@ const DetailsEmp = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Phone Number"
-                name="phoneNumber"
-                variant="outlined"
-                fullWidth
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                disabled={!editing}
-                className={classes.formControl}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  marginTop: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            {connectedUser.role === "ProjectManager" && (
+              <>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Phone Number"
+                    name="phoneNumber"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    disabled={!editing}
+                    className={classes.formControl}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      marginTop: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme => theme.palette.primary.main,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '& .MuiInputBase-input': {
+                          width: '100% !important',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Email"
+                    name="email"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={!editing}
+                    className={classes.formControl}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      marginTop: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme => theme.palette.primary.main,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '& .MuiInputBase-input': {
+                          width: '100% !important',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
               <TextField
                 label="Department"
                 name="department"
@@ -522,6 +527,8 @@ const DetailsEmp = () => {
                 ))}
               </Select>
             </Grid>
+              </>
+            )}
           </Grid>
           <Box mt={2}>
             {editing ? (
@@ -556,7 +563,6 @@ const DetailsEmp = () => {
           </Box>
         </Card>
 
-        {/* Statistics Section */}
         {/* Statistics Section */}
         <Card className={classes.card}>
           <Typography variant="h4" className={classes.sectionTitle}>Statistics</Typography>

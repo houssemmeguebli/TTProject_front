@@ -1,10 +1,5 @@
 
-// Argon Dashboard 2 MUI components
-import ArgonButton from "components/ArgonButton";
 import ArgonBox from "components/ArgonBox";
-import ArgonTypography from "components/ArgonTypography";
-
-// Argon Dashboard 2 MUI context
 import { useArgonController } from "context";
 
 // Images

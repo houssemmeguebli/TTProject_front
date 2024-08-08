@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Container, Paper, Typography, Grid, Button } from '@mui/material';
+import { Container, Paper, Typography, Grid } from '@mui/material';
 import { differenceInDays, parseISO } from 'date-fns';
 import { makeStyles } from '@mui/styles';
 
@@ -23,27 +23,31 @@ const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-as
 const useStyles = makeStyles((theme) => ({
   upcomingEventsSection: {
     marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
+    padding: theme.spacing(3),
     backgroundColor: theme.palette.grey[100],
     borderRadius: '8px',
+    boxShadow: theme.shadows[3],
   },
   requestSummarySection: {
     marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
+    padding: theme.spacing(3),
     backgroundColor: theme.palette.grey[200],
     borderRadius: '8px',
+    boxShadow: theme.shadows[3],
   },
   tipsSection: {
     marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
+    padding: theme.spacing(3),
     backgroundColor: theme.palette.grey[100],
     borderRadius: '8px',
+    boxShadow: theme.shadows[3],
   },
   quickLinksSection: {
     marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
+    padding: theme.spacing(3),
     backgroundColor: theme.palette.grey[200],
     borderRadius: '8px',
+    boxShadow: theme.shadows[3],
   },
   eventPending: {
     backgroundColor: '#ffaa3b !important', // Use !important to override default styles
@@ -56,7 +60,17 @@ const useStyles = makeStyles((theme) => ({
   eventRejected: {
     backgroundColor: '#f44336 !important',
     borderColor: '#f44336 !important',
-  }
+  },
+  calendarContainer: {
+    marginTop: theme.spacing(1),
+    padding: theme.spacing(1),
+    borderRadius: '8px',
+    boxShadow: theme.shadows[5],
+  },
+  calendar: {
+    borderRadius: '8px',
+    border: `1px solid ${theme.palette.divider}`,
+  },
 }));
 
 const CalendarEmp = () => {
@@ -92,14 +106,14 @@ const CalendarEmp = () => {
             // Generate dates between start and end
             for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
               if (isWeekday(date)) {
-                const duration = differenceInDays(endDate, startDate);
+                const duration = differenceInDays(endDate, startDate) + 1; // +1 to include end date
                 const statusClass = getStatusClass(request.status);
                 const statusType = getStatusType(request.status);
 
                 acc.push({
-                  title: `${statusType} -${duration} days`,
+                  title: `${statusType} - ${duration} day${duration > 1 ? 's' : ''}`,
                   start: new Date(date).toISOString(),
-                  end: new Date(date).toISOString() ,
+                  end: new Date(date).toISOString(),
                   className: statusClass,
                 });
               }
@@ -143,8 +157,8 @@ const CalendarEmp = () => {
     return startDate.getDay() !== 0 && startDate.getDay() !== 6;
   });
 
-  const approvedRequests = filteredEvents.filter(e => e.status === 1).length;
-  const pendingRequests = filteredEvents.filter(e => e.status === 0).length;
+  const approvedRequests = filteredEvents.filter(e => e.className === classes.eventApproved).length;
+  const pendingRequests = filteredEvents.filter(e => e.className === classes.eventPending).length;
 
   return (
     <DashboardLayout
@@ -155,27 +169,26 @@ const CalendarEmp = () => {
       }}
     >
       <DashboardNavbar />
-      <Container sx={{ padding: 4 }}>
-        <Paper elevation={4} sx={{ padding: 3, borderRadius: 2 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
-            Calendar
-          </Typography>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={filteredEvents}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            }}
-            sx={{ marginTop: 2 }}
-            dayCellDidMount={(info) => {
-              if (info.date.getDay() === 0 || info.date.getDay() === 6) {
-                info.el.style.backgroundColor = '#f5f5f5'; // Light gray for weekends
-              }
-            }}
-          />
+      <Container sx={{ padding: 1 }}>
+        <Paper elevation={4} sx={{ padding: 2, borderRadius: 2 }}>
+          <div className={classes.calendarContainer}>
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={filteredEvents}
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              }}
+              dayCellDidMount={(info) => {
+                if (info.date.getDay() === 0 || info.date.getDay() === 6) {
+                  info.el.style.backgroundColor = '#f5f5f5'; // Light gray for weekends
+                }
+              }}
+              className={classes.calendar}
+            />
+          </div>
 
           {/* Upcoming Events Section */}
           <ArgonBox className={classes.upcomingEventsSection}>
@@ -213,28 +226,6 @@ const CalendarEmp = () => {
               - Hover over events for more details.<br />
               - Use the filters to find specific requests quickly.
             </Typography>
-          </ArgonBox>
-
-          {/* Quick Links Section */}
-          <ArgonBox className={classes.quickLinksSection}>
-            <Typography variant="h6">Quick Links</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  View All Requests
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  Manage Users
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  Generate Report
-                </Button>
-              </Grid>
-            </Grid>
           </ArgonBox>
         </Paper>
       </Container>

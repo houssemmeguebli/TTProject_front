@@ -11,8 +11,8 @@ import Footer from "../../../examples/Footer";
 import ArgonBox from "../../../components/ArgonBox";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
-import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography } from "@mui/material";
-import { differenceInDays, format, parseISO } from "date-fns";
+import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography, Box } from "@mui/material";
+import {  format, parseISO } from "date-fns";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -23,6 +23,7 @@ import DialogActions from "@mui/material/DialogActions";
 import AuthService from "../../../_services/AuthService";
 import RequestService from "../../../_services/RequestService";
 import ProjectManagerService from "../../../_services/ProjectManagerService";
+import clsx from "clsx";
 
 const employeeService = new EmployeeService();
 const authService = new AuthService();
@@ -30,11 +31,8 @@ const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-as
 const requestService = new RequestService();
 const UserService = new ProjectManagerService();
 const useStyles = makeStyles((theme) => ({
-  card: {
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-    margin: theme.spacing(2),
-    borderRadius: '12px',
-  },
+
+
   addButton: {
     marginBottom: theme.spacing(2),
     color: '#ffffff',
@@ -72,18 +70,23 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   statusCell: {
-    width: '125px',
-    fontWeight: '600',
-    padding: '12px 20px',
-    textAlign: 'center',
-    borderRadius: '5px',
+    width: "125px",
+    fontWeight: 600,
+    padding: "12px 20px",
+    textAlign: "center",
+    borderRadius: "5px",
     justifyContent: "center",
-    color: '#fff',
-    transition: 'background-color 0.3s, transform 0.2s',
-    display: 'inline-block',
-    fontSize: '16px',
-    textTransform: 'uppercase',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    color: "#fff",
+    transition: "background-color 0.3s, transform 0.2s",
+    display: "inline-block",
+    fontSize: "16px",
+    textTransform: "uppercase",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    [theme.breakpoints.down("sm")]: {
+      width: "100%",
+      fontSize: "12px",
+      padding: "10px 15px",
+    },
   },
   statusPending: {
     backgroundColor: '#ff9800',
@@ -128,6 +131,28 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     textAlign: 'center',
   },
+  card: {
+    margin: theme.spacing(2),
+    padding: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[3],
+    backgroundColor: theme.palette.background.paper,
+  },
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  cardContent: {
+    marginTop: theme.spacing(1),
+  },
+  cardActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: theme.spacing(2),
+    flexWrap: "wrap",
+  },
 }));
 
 const Status = {
@@ -147,12 +172,14 @@ const Empolyee = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
 
   useEffect(() => {
     fetchRequests();
   }, []);
   const currentUser = authService.getCurrentUser();
   console.log("id :",currentUser.id);
+
   const fetchRequests = async () => {
     try {
       const employeeId = currentUser.id;
@@ -172,6 +199,18 @@ const Empolyee = () => {
     setSelectedRequest(request);
     setOpenDialog(true);
   };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const handleDialogClose = () => {
     setOpenDialog(false);
   };
@@ -207,14 +246,14 @@ const Empolyee = () => {
       try {
         await requestService.deleteRequest(requestId);
         setRequestsData(requestsData.filter(request => request.requestId !== requestId));
-        Swal.fire({
+        await Swal.fire({
           title: "Deleted!",
           text: "Your request has been deleted.",
           icon: "success",
         });
       } catch (error) {
         console.error('Error deleting request:', error);
-        Swal.fire({
+        await Swal.fire({
           title: "Error!",
           text: "There was a problem deleting your request.",
           icon: "error",
@@ -345,8 +384,48 @@ const Empolyee = () => {
                 }}
               />
             </ArgonBox>
-
-
+            {isMobile ? (
+              currentRequests.map(request => (
+                <Card key={request.requestId} className={classes.card}>
+                  <ArgonBox p={2}>
+                    <Box className={classes.cardHeader}>
+                      <Typography variant="h6">{userMap[request.userId]}</Typography>
+                      <Typography
+                        className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
+                      >
+                        {Status[request.status]}
+                      </Typography>
+                    </Box>
+                    <Box className={classes.cardContent}>
+                      <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
+                      <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
+                      <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
+                      <Typography variant="body1">{`Comment: ${request.comment || "No comments"}`}</Typography>
+                    </Box>
+                    <Box className={classes.cardActions}>
+                      <IconButton
+                        className={classes.actionButton}
+                        color="primary"
+                        aria-label="view details"
+                        onClick={() => handleViewDetails(request)}
+                      >
+                        <Visibility />
+                      </IconButton>
+                      {request.status !== 1 && request.status !== 3 && (
+                        <IconButton onClick={() => handleUpdate(request.requestId)}>
+                          <Edit />
+                        </IconButton>
+                      )}
+                      {request.status !== 1 && request.status !== 3 && (
+                        <IconButton onClick={() => handleDelete(request.requestId)}>
+                          <Delete />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </ArgonBox>
+                </Card>
+              ))
+            ) : (
             <table>
               <thead>
               <tr>
@@ -400,7 +479,7 @@ const Empolyee = () => {
               ))}
               </tbody>
             </table>
-
+            )}
             <Container className={classes.pagination}>
             <Pagination
                 count={Math.ceil(filteredRequests.length / rowsPerPage)}

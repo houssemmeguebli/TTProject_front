@@ -8,9 +8,7 @@ import {
   TextField,
   Card,
   Button,
-  Container,
   InputAdornment,
-  Grid,
   IconButton,
   List,
   ListItem,
@@ -18,7 +16,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
+  DialogActions, CardContent,
 } from "@mui/material";
 import EmployeeService from '../../_services/EmployeeService';
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
@@ -150,6 +148,7 @@ const EmployeeTable = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -184,6 +183,18 @@ const EmployeeTable = () => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage - 1); // Adjust for zero-based page index
   };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -355,6 +366,39 @@ const EmployeeTable = () => {
                 }}
               />
             </ArgonBox>
+            {isMobile ? (
+                filteredEmployees.map(employee => (
+                  <Card key={employee.id} variant="outlined" sx={{ margin: 2, borderRadius: 2, boxShadow: 2, borderColor: '#e0e0e0' }}>
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="h5" component="div" sx={{ fontWeight: '600', color: '#333' }}>
+                        {employee.firstName} {employee.lastName}
+                      </Typography>
+                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                        <strong>Email:</strong> {employee.email}
+                      </Typography>
+                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                        <strong>Role:</strong> {getRoleName(employee.role)}
+                      </Typography>
+                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                        <strong>Department:</strong> {employee.department}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: getStatusColor(employee.userStatus), fontWeight: '500' }}>
+                        <strong>Status:</strong> {getStatusName(employee.userStatus)}
+                      </Typography>
+                      <div style={{ marginTop: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <IconButton onClick={() => handleViewDetails(employee)} sx={{ color: '#1976d2' }}>
+                          <Visibility />
+                        </IconButton>
+                        {employee.userStatus !== UserStatus.INACTIVE && (
+                          <IconButton onClick={() => handleToggleStatus(employee)} color="warning">
+                            {employee.userStatus === UserStatus.ACTIVE ? <Warning /> : <Add />}
+                          </IconButton>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+            ))
+            ) : (
             <TableContainer component={Paper}>
               <Table>
                 <thead>
@@ -391,6 +435,7 @@ const EmployeeTable = () => {
                 </tbody>
               </Table>
             </TableContainer>
+          )}
             <Pagination
               className={classes.pagination}
               count={Math.ceil(filteredEmployees.length / rowsPerPage)}

@@ -5,7 +5,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid, TextField, InputAdornment,
+  Grid, TextField, InputAdornment, Box,
 } from "@mui/material";
 import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
 import ArgonBox from '../../components/ArgonBox';
@@ -28,6 +28,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
 import ProjectManagerService from "../../_services/ProjectManagerService";
+import clsx from "clsx";
 
 const requestService = new RequestService();
 const UserService = new ProjectManagerService();
@@ -59,9 +60,27 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.error.main,
   },
   card: {
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
     margin: theme.spacing(2),
-    borderRadius: '12px',
+    padding: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[3],
+    backgroundColor: theme.palette.background.paper,
+
+  },
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  cardContent: {
+    marginTop: theme.spacing(1),
+  },
+  cardActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: theme.spacing(2),
+    flexWrap: "wrap",
   },
   quickLinkButton: {
     padding: '12px',
@@ -104,18 +123,23 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   statusCell: {
-    width:'125px',
-    fontWeight: '600',
-    padding: '12px 20px',
-    textAlign: 'center',
-    borderRadius: '5px',
-    justifyContent:"center",
-    color: '#fff',
-    transition: 'background-color 0.3s, transform 0.2s',
-    display: 'inline-block',
-    fontSize: '16px',
-    textTransform: 'uppercase',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    width: "125px",
+    fontWeight: 600,
+    padding: "12px 20px",
+    textAlign: "center",
+    borderRadius: "5px",
+    justifyContent: "center",
+    color: "#fff",
+    transition: "background-color 0.3s, transform 0.2s",
+    display: "inline-block",
+    fontSize: "16px",
+    textTransform: "uppercase",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    [theme.breakpoints.down("sm")]: {
+      width: "100%",
+      fontSize: "12px",
+      padding: "10px 15px",
+    },
   },
   statusPending: {
     backgroundColor: '#ff9800', // Bright orange for pending
@@ -194,10 +218,22 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
 
 
   useEffect(() => {
     fetchRequests();
+  }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
 
@@ -405,7 +441,54 @@ const Index = () => {
                 }}
               />
             </ArgonBox>
-
+            {isMobile ? (
+              currentRequests.map(request => (
+                <Card key={request.requestId} className={classes.card}>
+                  <ArgonBox p={2}>
+                    <Box className={classes.cardHeader}>
+                      <Typography variant="h6">{userMap[request.userId]}</Typography>
+                      <Typography
+                        className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
+                      >
+                        {Status[request.status]}
+                      </Typography>
+                    </Box>
+                    <Box className={classes.cardContent}>
+                      <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
+                      <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
+                      <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
+                      <Typography variant="body1">{`Comment: ${request.comment || "No comments"}`}</Typography>
+                    </Box>
+                    <Box className={classes.cardActions}>
+                      <IconButton
+                        className={classes.actionButton}
+                        color="primary"
+                        aria-label="view details"
+                        onClick={() => handleViewDetails(request)}
+                      >
+                        <Visibility />
+                      </IconButton>
+                      <IconButton
+                        className={classes.actionButton}
+                        color="secondary"
+                        aria-label="edit"
+                        onClick={() => handleUpdate(request.requestId)}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        className={classes.actionButton}
+                        color="error"
+                        aria-label="delete"
+                        onClick={() => handleDelete(request.requestId)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
+                  </ArgonBox>
+                </Card>
+              ))
+            ) : (
             <table>
               <thead>
               <tr>
@@ -464,6 +547,7 @@ const Index = () => {
               ))}
               </tbody>
             </table>
+              )}
           </ArgonBox>
             </>
           )}

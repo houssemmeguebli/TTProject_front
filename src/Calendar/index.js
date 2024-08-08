@@ -218,27 +218,7 @@ const Calendar = () => {
             </Typography>
           </ArgonBox>
 
-          {/* Quick Links Section */}
-          <ArgonBox className={classes.quickLinksSection}>
-            <Typography variant="h6">Quick Links</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  View All Requests
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  Manage Users
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Button variant="outlined" color="primary" fullWidth>
-                  Generate Report
-                </Button>
-              </Grid>
-            </Grid>
-          </ArgonBox>
+
         </Paper>
       </Container>
       <Footer />

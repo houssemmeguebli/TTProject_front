@@ -115,7 +115,7 @@ function SignIn() {
   return (
     <IllustrationLayout
       title="Welcome!"
-      description="Use these awesome forms to login or create a new account in your project for free."
+      description="Use these awesome forms to login."
       illustration={{
         image: bgImage,
         title: 'Nice to see you!',

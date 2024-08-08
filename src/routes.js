@@ -1,19 +1,18 @@
-import Dashboard from "layouts/dashboard";
 import Profile from "layouts/profile";
-import SignUp from "layouts/authentication/sign-up";
 import ArgonBox from "components/ArgonBox";
 import React from "react";
 import Calendar from "./Calendar";
 import Request from "./layouts/Request";
+import PeopleIcon from '@mui/icons-material/People';
+import LogoutIcon from '@mui/icons-material/Logout';
 
-import Icon from "@mui/material/Icon";
 import AuthService from "./_services/AuthService";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import EmployeeProfiles from "./layouts/EmployeeProfiles";
 import Empolyee from "./layouts/Request/Employee";
 import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
-import CalendarEmp from "./layouts/Request/Employee/CalenderEmp"; // Import the AuthService
+import CalendarEmp from "./layouts/Request/Employee/CalenderEmp";
 
 const authService = new AuthService();
 const currentUser = authService.getCurrentUser();
@@ -36,14 +35,14 @@ const Logout = () => {
       try {
         await authService.logout();
         navigate("/authentication/sign-in");
-        Swal.fire(
+        await Swal.fire(
           'Logged Out!',
           'You have been logged out successfully.',
           'success'
         );
       } catch (error) {
         console.error('Error logging out:', error);
-        Swal.fire(
+        await Swal.fire(
           'Error!',
           'There was an error logging out. Please try again.',
           'error'
@@ -65,25 +64,14 @@ const Logout = () => {
 
 
 const routes = [
-  /*
-  {
-    type: "route",
-    name: "Dashboard",
-    key: "dashboard",
-    route: "/dashboard",
-    icon: <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-tv-2" />,
-    component: <Dashboard />,
-    roles: ["ProjectManager","Employee"],
-  },
 
-   */
   {
     type: "route",
     name: "Calendar",
     key: "Calendar",
     route: "/Calendar",
     icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
+      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-calendar-grid-58" />
     ),
     component: <Calendar  />,
     roles: ["ProjectManager"],
@@ -91,11 +79,11 @@ const routes = [
   },
   {
     type: "route",
-    name: "Calendar ",
+    name: "CalendarEmp ",
     key: "CalendarEmployee",
     route: "/CalendarEmployee",
     icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-calendar-grid-58" />
+      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-calendar-grid-58" />
     ),
     component: <CalendarEmp  />,
     roles: ["Employee"],
@@ -107,7 +95,7 @@ const routes = [
     key: "Requests",
     route: "/Requests",
     icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-paper-diploma" />
+      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-paper-diploma" />
     ),
     component: <Request />,
     roles: ["ProjectManager"],
@@ -119,7 +107,7 @@ const routes = [
     key: "RequestEmployee",
     route: "/RequestEmployee",
     icon: (
-      <ArgonBox component="i" color="warning" fontSize="14px" className="ni ni-paper-diploma" />
+      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-paper-diploma" />
     ),
     component: <Empolyee />,
     roles: ["Employee"],
@@ -130,7 +118,7 @@ const routes = [
   {
     type: "route",
     name: "My Profile",
-    key: "profile",
+    key: "profileEmp",
     route: `/employee/${currentUser?.id || ""}`,
     icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
     component: <DetailsEmp />,
@@ -152,7 +140,7 @@ const routes = [
     name: "Employees Profiles",
     key: "Employees Profiles",
     route: "/EmployeeProfiles",
-    icon: <ArgonBox component="i" color="info" fontSize="14px" className="ni ni-collection" />,
+    icon: <PeopleIcon color="dark" fontSize="14px" />,
     component: <EmployeeProfiles />,
     roles: ["ProjectManager"],
   },
@@ -162,7 +150,7 @@ const routes = [
     name: "Logout",
     key: "logout",
     route: "/logout",
-    icon: <Icon color="error" fontSize="14px" className="ni ni-button-power" />,
+    icon: <LogoutIcon color="error" fontSize="14px" />,
     component: <Logout />,
     roles: ["ProjectManager","Employee"],
 

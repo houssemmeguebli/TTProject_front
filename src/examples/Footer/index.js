@@ -5,7 +5,12 @@ import ArgonBox from "components/ArgonBox";
 import ArgonTypography from "components/ArgonTypography";
 import typography from "assets/theme/base/typography";
 
-function Footer({ company, links, additionalLinks }) {
+// Updated Footer component with default parameters
+function Footer({ company = { href: "https://www.example.com/", name: "Remote Work Co." }, links = [
+  { href: "https://www.example.com/about", name: "About Us" },
+  { href: "https://www.example.com/blog", name: "Blog" },
+  { href: "https://www.example.com/contact", name: "Contact" },
+], additionalLinks = [] }) {
   const { href, name } = company;
   const { size } = typography;
 
@@ -46,9 +51,9 @@ function Footer({ company, links, additionalLinks }) {
         &copy; {new Date().getFullYear()}
         <ArgonBox fontSize={size.md} color="text" mb={-0.5} mx={0.25}>
           <Icon color="inherit" fontSize="inherit">
+            {/* Add an icon or remove this line if not needed */}
           </Icon>
         </ArgonBox>
-
       </ArgonBox>
       <ArgonBox
         component="ul"
@@ -68,7 +73,7 @@ function Footer({ company, links, additionalLinks }) {
       >
         {renderLinks(links)}
       </ArgonBox>
-      {additionalLinks && additionalLinks.length > 0 && (
+      {additionalLinks.length > 0 && (
         <ArgonBox
           component="ul"
           sx={{
@@ -82,26 +87,26 @@ function Footer({ company, links, additionalLinks }) {
             p: 0,
           }}
         >
+          {renderLinks(additionalLinks)}
         </ArgonBox>
       )}
     </ArgonBox>
   );
 }
 
-Footer.defaultProps = {
-  company: { href: "https://www.example.com/", name: "Remote Work Co." },
-  links: [
-    { href: "https://www.example.com/about", name: "About Us" },
-    { href: "https://www.example.com/blog", name: "Blog" },
-    { href: "https://www.example.com/contact", name: "Contact" },
-  ],
-
-};
-
 Footer.propTypes = {
-  company: PropTypes.objectOf(PropTypes.string),
-  links: PropTypes.arrayOf(PropTypes.object),
-  additionalLinks: PropTypes.arrayOf(PropTypes.object),
+  company: PropTypes.shape({
+    href: PropTypes.string,
+    name: PropTypes.string,
+  }),
+  links: PropTypes.arrayOf(PropTypes.shape({
+    href: PropTypes.string,
+    name: PropTypes.string,
+  })),
+  additionalLinks: PropTypes.arrayOf(PropTypes.shape({
+    href: PropTypes.string,
+    name: PropTypes.string,
+  })),
 };
 
 export default Footer;

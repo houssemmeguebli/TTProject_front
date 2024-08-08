@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { Breadcrumbs, IconButton, Menu, Toolbar } from "@mui/material";
-import AppBar from "@mui/material/AppBar";
-import Icon from "@mui/material/Icon";
+import { Breadcrumbs, IconButton, Menu, Toolbar, AppBar, Icon } from "@mui/material";
 import ArgonBox from "../../../components/ArgonBox";
 import ArgonTypography from "../../../components/ArgonTypography";
 import NotificationItem from "../../Items/NotificationItem";
@@ -15,11 +13,11 @@ import AuthService from "../../../_services/AuthService";
 
 const authService = new AuthService();
 
-function DashboardNavbar({ absolute, light, isMini }) {
+function DashboardNavbar({ absolute = false, light = true, isMini = false }) {
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useArgonController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator } = controller;
-  const [openMenu, setOpenMenu] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null); // Changed to null for better handling
   const [user, setUser] = useState(null);
   const route = useLocation().pathname.split("/").slice(1);
 
@@ -30,37 +28,30 @@ function DashboardNavbar({ absolute, light, isMini }) {
     setUser(currentUser);
 
     // Setting the navbar type
-    if (fixedNavbar) {
-      setNavbarType("sticky");
-    } else {
-      setNavbarType("static");
-    }
+    setNavbarType(fixedNavbar ? "sticky" : "static");
 
-    // A function that sets the transparent state of the navbar.
+    // Function to set the transparent state of the navbar
     function handleTransparentNavbar() {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
     }
 
-    // The event listener that's calling the handleTransparentNavbar function when scrolling the window.
+    // Add and clean up scroll event listener
     window.addEventListener("scroll", handleTransparentNavbar);
-
-    // Call the handleTransparentNavbar function to set the state with the initial value.
     handleTransparentNavbar();
 
-    // Remove event listener on cleanup
     return () => window.removeEventListener("scroll", handleTransparentNavbar);
   }, [dispatch, fixedNavbar]);
 
   const handleMiniSidenav = () => setMiniSidenav(dispatch, !miniSidenav);
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
   const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
-  const handleCloseMenu = () => setOpenMenu(false);
+  const handleCloseMenu = () => setOpenMenu(null); // Use null for closing the menu
 
   // Render the notifications menu
   const renderMenu = () => (
     <Menu
       anchorEl={openMenu}
-      anchorReference={null}
+      anchorReference="anchorEl"
       anchorOrigin={{
         vertical: "bottom",
         horizontal: "left",
@@ -117,30 +108,16 @@ function DashboardNavbar({ absolute, light, isMini }) {
             {miniSidenav ? "menu_open" : "menu"}
           </Icon>
         </ArgonBox>
-        {isMini ? null : (
+        {!isMini && (
           <ArgonBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <ArgonBox color={light ? "white" : "inherit"}>
-              <IconButton
-                size="small"
-                color={light && transparentNavbar ? "white" : "dark"}
-                sx={navbarIconButton}
-                aria-controls="notification-menu"
-                aria-haspopup="true"
-                variant="contained"
-                onClick={handleOpenMenu}
-              >
-                <Icon>notifications</Icon>
-              </IconButton>
-              {renderMenu()}
-            </ArgonBox>
-            <Link to="/profile" >
+
+            <Link to="/profile">
               <ArgonBox
                 display="flex"
                 alignItems="center"
                 color={light ? "white" : "dark"}
                 sx={navbarIconButton}
               >
-
                 <Icon sx={{ fontSize: 40, color: 'inherit', mr: 1 }}>person</Icon> {/* User Icon */}
                 <ArgonTypography variant="h6" color="inherit" sx={{ fontWeight: 'bold' }}>
                   {user?.firstName} {user?.lastName}
@@ -150,8 +127,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 </ArgonTypography>
               </ArgonBox>
             </Link>
-
-
             <IconButton
               size="small"
               color={light && transparentNavbar ? "white" : "dark"}
@@ -166,13 +141,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
     </AppBar>
   );
 }
-
-// Setting default values for the props of DashboardNavbar
-DashboardNavbar.defaultProps = {
-  absolute: false,
-  light: true,
-  isMini: false,
-};
 
 // Typechecking props for the DashboardNavbar
 DashboardNavbar.propTypes = {
