@@ -3,121 +3,130 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Container, Paper, Typography, Grid } from '@mui/material';
-import { differenceInDays, parseISO } from 'date-fns';
+import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { format, parseISO } from 'date-fns';
 import { makeStyles } from '@mui/styles';
 
-import AuthService from "../../../_services/AuthService";
-import RequestService from "../../../_services/RequestService";
-import EmployeeService from "../../../_services/EmployeeService";
-import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
-import ArgonBox from "../../../components/ArgonBox";
-import Footer from "../../../examples/Footer";
+import AuthService from "../../_services/AuthService";
+import EmployeeService from "../../_services/EmployeeService";
+import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
+import ArgonBox from "../../components/ArgonBox";
+import Footer from "../../examples/Footer";
 
-const requestService = new RequestService();
+const requestService = new EmployeeService();
 const authService = new AuthService();
-const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
 const useStyles = makeStyles((theme) => ({
   upcomingEventsSection: {
     marginTop: theme.spacing(3),
     padding: theme.spacing(3),
-    backgroundColor: theme.palette.grey[100],
+    backgroundColor: theme.palette.background.default,
     borderRadius: '8px',
     boxShadow: theme.shadows[3],
   },
   requestSummarySection: {
     marginTop: theme.spacing(3),
     padding: theme.spacing(3),
-    backgroundColor: theme.palette.grey[200],
+    backgroundColor: theme.palette.background.paper,
     borderRadius: '8px',
     boxShadow: theme.shadows[3],
   },
   tipsSection: {
     marginTop: theme.spacing(3),
     padding: theme.spacing(3),
-    backgroundColor: theme.palette.grey[100],
+    backgroundColor: theme.palette.background.default,
     borderRadius: '8px',
     boxShadow: theme.shadows[3],
-  },
-  quickLinksSection: {
-    marginTop: theme.spacing(3),
-    padding: theme.spacing(3),
-    backgroundColor: theme.palette.grey[200],
-    borderRadius: '8px',
-    boxShadow: theme.shadows[3],
-  },
-  eventPending: {
-    backgroundColor: '#ffaa3b !important', // Use !important to override default styles
-    borderColor: '#ffaa3b !important',
-  },
-  eventApproved: {
-    backgroundColor: '#4caf50 !important',
-    borderColor: '#4caf50 !important',
-  },
-  eventRejected: {
-    backgroundColor: '#f44336 !important',
-    borderColor: '#f44336 !important',
   },
   calendarContainer: {
-    marginTop: theme.spacing(1),
-    padding: theme.spacing(1),
+    marginTop: theme.spacing(3),
+    padding: theme.spacing(2),
+    backgroundColor: theme.palette.background.paper,
     borderRadius: '8px',
     boxShadow: theme.shadows[5],
   },
   calendar: {
     borderRadius: '8px',
     border: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.default,
+    boxShadow: theme.shadows[2],
+  },
+  eventPending: {
+    backgroundColor: '#ffaa3b !important',
+    borderColor: '#ffaa3b !important',
+    opacity: 0.9,
+  },
+  eventApproved: {
+    backgroundColor: '#4caf50 !important',
+    borderColor: '#4caf50 !important',
+    opacity: 0.9,
+  },
+  eventRejected: {
+    backgroundColor: '#f44336 !important',
+    borderColor: '#f44336 !important',
+    opacity: 0.9,
+  },
+  event: {
+    borderRadius: '5px',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    padding: '2px',
   },
 }));
+
+const getBusinessDaysCount = (startDate, endDate) => {
+  let count = 0;
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    const dayOfWeek = currentDate.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Exclude Saturdays (6) and Sundays (0)
+      count++;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return count;
+};
 
 const CalendarEmp = () => {
   const classes = useStyles();
   const [events, setEvents] = useState([]);
   const [user, setUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const currentUserId = authService.getCurrentUser().id;
 
   useEffect(() => {
     const fetchUserAndRequests = async () => {
       try {
-        // Fetch the current user details
-        const userResponse = await employeeService.getEmployeeById(currentUserId);
+        const userResponse = await requestService.getEmployeeById(currentUserId);
         setUser({
           firstName: userResponse.firstName,
           lastName: userResponse.lastName,
         });
 
-        // Fetch the current user's requests
-        const result = await employeeService.getRequestsByEmployeeId(currentUserId);
+        const result = await requestService.getRequestsByEmployeeId(currentUserId);
         if (result && Array.isArray(result.$values)) {
           const requestsData = result.$values;
 
-          // Helper function to check if a date is a weekday
-          const isWeekday = (date) => !(date.getDay() === 0 || date.getDay() === 6);
-
-          // Generate events, excluding weekends
           const eventsData = requestsData.reduce((acc, request) => {
             const startDate = parseISO(request.startDate);
             const endDate = parseISO(request.endDate);
 
-            // Generate dates between start and end
-            for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-              if (isWeekday(date)) {
-                const duration = differenceInDays(endDate, startDate) + 1; // +1 to include end date
-                const statusClass = getStatusClass(request.status);
-                const statusType = getStatusType(request.status);
+            const businessDays = getBusinessDaysCount(startDate, endDate);
+            const statusClass = getStatusClass(request.status);
+            const statusType = getStatusType(request.status);
 
-                acc.push({
-                  title: `${statusType} - ${duration} day${duration > 1 ? 's' : ''}`,
-                  start: new Date(date).toISOString(),
-                  end: new Date(date).toISOString(),
-                  className: statusClass,
-                });
-              }
-            }
+            acc.push({
+              title: `${statusType} (${businessDays} days)`,
+              start: startDate.toISOString(),
+              end: endDate.toISOString(),
+              className: `${statusClass} ${classes.event}`,
+              status: request.status,
+            });
 
             return acc;
           }, []);
@@ -136,10 +145,10 @@ const CalendarEmp = () => {
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 0: return classes.eventPending; // Pending
-      case 1: return classes.eventApproved; // Approved
-      case 3: return classes.eventRejected; // Rejected
-      default: return ''; // Default class
+      case 0: return classes.eventPending;
+      case 1: return classes.eventApproved;
+      case 3: return classes.eventRejected;
+      default: return '';
     }
   };
 
@@ -152,13 +161,16 @@ const CalendarEmp = () => {
     }
   };
 
-  const filteredEvents = events.filter(event => {
-    const startDate = new Date(event.start);
-    return startDate.getDay() !== 0 && startDate.getDay() !== 6;
-  });
+  const handleFilterChange = (event) => {
+    setFilterStatus(event.target.value);
+  };
 
-  const approvedRequests = filteredEvents.filter(e => e.className === classes.eventApproved).length;
-  const pendingRequests = filteredEvents.filter(e => e.className === classes.eventPending).length;
+  const filteredEvents = events.filter(event =>
+    filterStatus === 'all' || event.status === parseInt(filterStatus)
+  );
+
+  const approvedRequests = filteredEvents.filter(e => e.className.includes(classes.eventApproved)).length;
+  const pendingRequests = filteredEvents.filter(e => e.className.includes(classes.eventPending)).length;
 
   return (
     <DashboardLayout
@@ -171,6 +183,35 @@ const CalendarEmp = () => {
       <DashboardNavbar />
       <Container sx={{ padding: 1 }}>
         <Paper elevation={4} sx={{ padding: 2, borderRadius: 2 }}>
+          <Grid item xs={12} sm={4}>
+            <FormControl  sx={{ width:"30%",'& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: theme => theme.palette.primary.main,
+                },
+                '&:hover fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '& .MuiInputBase-input': {
+                  width: '100% !important',
+                },
+              },
+            }}>
+              <InputLabel>Status Filter</InputLabel>
+              <Select
+                value={filterStatus}
+                onChange={handleFilterChange}
+                label="Status Filter"
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="0">Pending</MenuItem>
+                <MenuItem value="1">Approved</MenuItem>
+                <MenuItem value="3">Rejected</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
           <div className={classes.calendarContainer}>
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -183,50 +224,51 @@ const CalendarEmp = () => {
               }}
               dayCellDidMount={(info) => {
                 if (info.date.getDay() === 0 || info.date.getDay() === 6) {
-                  info.el.style.backgroundColor = '#f5f5f5'; // Light gray for weekends
+                  info.el.style.backgroundColor = '#f5f5f5';
                 }
               }}
               className={classes.calendar}
             />
           </div>
 
-          {/* Upcoming Events Section */}
           <ArgonBox className={classes.upcomingEventsSection}>
             <Typography variant="h6">Upcoming Events</Typography>
             <ul>
               {filteredEvents.slice(0, 5).map(event => (
                 <li key={event.start}>
-                  <Typography variant="body2">{event.title} on {new Date(event.start).toLocaleDateString()}</Typography>
+                  <Typography variant="body2">
+                    {event.title} on {new Date(format(new Date(event.start), 'dd-MM-yyyy')).toLocaleDateString()}
+                  </Typography>
                 </li>
               ))}
             </ul>
           </ArgonBox>
 
-          {/* Request Summary Section */}
           <ArgonBox className={classes.requestSummarySection}>
             <Typography variant="h6">Request Summary</Typography>
             <Grid container spacing={2}>
-              <Grid item xs={4}>
+
+              <Grid item xs={12} sm={4}>
                 <Typography variant="body2">Total Requests: {filteredEvents.length}</Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <Typography variant="body2">Approved: {approvedRequests}</Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <Typography variant="body2">Pending: {pendingRequests}</Typography>
               </Grid>
             </Grid>
           </ArgonBox>
 
-          {/* Tips for Using the Calendar */}
           <ArgonBox className={classes.tipsSection}>
             <Typography variant="h6">Tips for Using the Calendar</Typography>
             <Typography variant="body2">
-              - Click on a date to create a new request.<br />
-              - Hover over events for more details.<br />
-              - Use the filters to find specific requests quickly.
+              - Utilize color codes to quickly identify the status of events.<br />
+              - Review your calendar regularly to keep track of upcoming tasks and events.<br />
+              - Customize the calendar view to suit your preference (daily, weekly, monthly).<br />
             </Typography>
           </ArgonBox>
+
         </Paper>
       </Container>
       <Footer />

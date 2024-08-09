@@ -11,16 +11,18 @@ import {
   FormHelperText,
   CircularProgress,
 } from "@mui/material";
+import { format } from 'date-fns';
+
 import { useNavigate } from 'react-router-dom';
-import RequestService from "../../../_services/RequestService";
-import AuthService from "../../../_services/AuthService";
-import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import RequestService from "../../_services/RequestService";
+import AuthService from "../../_services/AuthService";
+import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
-import ProjectManagerService from "../../../_services/ProjectManagerService";
-import EmailService from "../../../_services/EmailService";
+import ProjectManagerService from "../../_services/ProjectManagerService";
+import EmailService from "../../_services/EmailService";
 
 const requestService = new RequestService();
 const authService = new AuthService();
@@ -111,16 +113,16 @@ const AddRequestEmp = ({ onSubmit }) => {
       const response = await projectManagerService.getAllUsers();
       console.log('Project Managers Response:', response);
 
-      const projectManagers = response.data?.$values || [];
+      const projectManagers = response.$values || [];
       if (!Array.isArray(projectManagers)) {
         throw new Error("Project Managers data is not an array");
       }
-
       // Validate email addresses
       const validEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const managersEmails = projectManagers
         .map(pm => pm.email)
         .filter(email => validEmailRegex.test(email)); // Keep only valid emails
+      console.log('Project Managers emails:', managersEmails);
 
       if (managersEmails.length === 0) {
         throw new Error("No valid email addresses found.");
@@ -201,16 +203,18 @@ const AddRequestEmp = ({ onSubmit }) => {
                       <TextField
                         name="startDate"
                         type="text"
-                        value={formValues.startDate ? formValues.startDate.toISOString().split('T')[0] : ''}
                         fullWidth
                         required
                         InputLabelProps={{ shrink: true }}
+                        value={formValues.startDate ? format(formValues.startDate, 'dd-MM-yyyy') : ''}
+                        placeholder={!formValues.startDate ? 'Select date' : ''}
                         InputProps={{
-                          readOnly: true // prevents manual input
+                          readOnly: true
                         }}
                       />
                     }
                   />
+
                   {errors.startDate && touched.startDate && <FormHelperText>{errors.startDate}</FormHelperText>}
                 </FormControl>
               </Grid>
@@ -227,12 +231,14 @@ const AddRequestEmp = ({ onSubmit }) => {
                       <TextField
                         name="endDate"
                         type="text"
-                        value={formValues.endDate ? formValues.endDate.toISOString().split('T')[0] : ''}
+                        value={formValues.endDate ? format(formValues.endDate, 'dd-MM-yyyy') : ''}
                         fullWidth
                         required
                         InputLabelProps={{ shrink: true }}
                         InputProps={{
-                          readOnly: true // prevents manual input
+                          readOnly: true,
+                          placeholder: "Select a date" // Adding the placeholder
+
                         }}
                       />
                     }

@@ -41,13 +41,15 @@ const Index = ({ onSubmit }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await employeeService.getAllEmployees();
+        console.log("employees", response);
+        //fetch only active users
         if (response.$values) {
-          setUsers(response.$values);
+          const activeUsers = response.$values.filter(user => user.userStatus === 1);
+          setUsers(activeUsers);
         } else {
           console.error('Unexpected response structure:', response);
         }

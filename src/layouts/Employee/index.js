@@ -5,12 +5,12 @@ import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import SearchIcon from '@mui/icons-material/Search';
-import EmployeeService from "../../../_services/EmployeeService";
-import ArgonTypography from "../../../components/ArgonTypography";
-import Footer from "../../../examples/Footer";
-import ArgonBox from "../../../components/ArgonBox";
-import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
-import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
+import EmployeeService from "../../_services/EmployeeService";
+import ArgonTypography from "../../components/ArgonTypography";
+import Footer from "../../examples/Footer";
+import ArgonBox from "../../components/ArgonBox";
+import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
+import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography, Box } from "@mui/material";
 import {  format, parseISO } from "date-fns";
 import Dialog from "@mui/material/Dialog";
@@ -20,9 +20,9 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import DialogActions from "@mui/material/DialogActions";
-import AuthService from "../../../_services/AuthService";
-import RequestService from "../../../_services/RequestService";
-import ProjectManagerService from "../../../_services/ProjectManagerService";
+import AuthService from "../../_services/AuthService";
+import RequestService from "../../_services/RequestService";
+import ProjectManagerService from "../../_services/ProjectManagerService";
 import clsx from "clsx";
 
 const employeeService = new EmployeeService();
@@ -296,10 +296,17 @@ const Empolyee = () => {
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
 
   const getBusinessDaysCount = (startDate, endDate) => {
+    // Parse the dates if they are strings
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (start > end) {
+      console.error('Start date must be before end date.');
+      return 0;
+    }
     let count = 0;
-    const currentDate = new Date(startDate);
+    const currentDate = new Date(start);
 
-    while (currentDate <= endDate) {
+    while (currentDate <= end) {
       const dayOfWeek = currentDate.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         count++;

@@ -1,7 +1,7 @@
 import Profile from "layouts/profile";
 import ArgonBox from "components/ArgonBox";
 import React from "react";
-import Calendar from "./Calendar";
+import Calendar from "./layouts/Calendar";
 import Request from "./layouts/Request";
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -10,9 +10,9 @@ import AuthService from "./_services/AuthService";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import EmployeeProfiles from "./layouts/EmployeeProfiles";
-import Empolyee from "./layouts/Request/Employee";
+import Empolyee from "./layouts/Employee";
 import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
-import CalendarEmp from "./layouts/Request/Employee/CalenderEmp";
+import CalendarEmp from "./layouts/Employee/CalenderEmp";
 
 const authService = new AuthService();
 const currentUser = authService.getCurrentUser();

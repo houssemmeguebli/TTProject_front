@@ -6,24 +6,19 @@ import {
   Container,
   Paper,
   Typography,
-  MenuItem,
-  Select,
-  FormControl,
   CircularProgress,
+  FormControl,
   FormHelperText,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
-import RequestService from '../../../_services/RequestService';
-import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from '../../../examples/Navbars/DashboardNavbar';
+import RequestService from '../../_services/RequestService';
+import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
 import Swal from "sweetalert2";
-import EmployeeService from "../../../_services/EmployeeService";
-import EmailService from "../../../_services/EmailService";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
 
 const requestService = new RequestService();
-const employeeService = new EmployeeService();
 const bgImage =
   'https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg';
 
@@ -82,32 +77,30 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
     color: theme.palette.text.primary,
   },
+  notes: {
+    marginTop: theme.spacing(3),
+    backgroundColor: theme.palette.background.default,
+    padding: theme.spacing(2),
+    borderRadius: '8px',
+    boxShadow: theme.shadows[1],
+  },
 }));
 
-const UpdateRequest = () => {
+const UpdateRequestEmp = () => {
   const classes = useStyles();
   const { requestId } = useParams();
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
-  const [isNoteRequired, setIsNoteRequired] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const [request, setRequest] = useState({
-    status: '',
+    comment: '',
     startDate: new Date(),
     endDate: new Date(),
-    note: '',
   });
-  const today = new Date().toISOString().split('T')[0];
-
   const [originalRequest, setOriginalRequest] = useState({});
-  const [employee, setEmployee] = useState(null);
-
-  const statuses = [
-    { value: 1, label: 'Approved' },
-    { value: 3, label: 'Rejected' },
-  ];
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -117,15 +110,13 @@ const UpdateRequest = () => {
           ...response,
           startDate: new Date(response.startDate),
           endDate: new Date(response.endDate),
-          note: response.note || '',
+          comment: response.comment || '',
         });
         setOriginalRequest({
           ...response,
           startDate: new Date(response.startDate),
           endDate: new Date(response.endDate),
         });
-        const employeeData = await employeeService.getEmployeeById(response.userId);
-        setEmployee(employeeData);
       } catch (error) {
         console.error('Error fetching request:', error);
       }
@@ -142,30 +133,31 @@ const UpdateRequest = () => {
       ...prevRequest,
       [name]: value,
     }));
-  };
 
-  const handleDateChange = (name, date) => {
-    setRequest(prevRequest => ({
-      ...prevRequest,
-      [name]: date,
-    }));
-    setTouched(prevTouched => ({
+    // Mark the field as touched
+    setTouched((prevTouched) => ({
       ...prevTouched,
       [name]: true,
     }));
-    if (name === "startDate" || name === "endDate") {
-      setIsNoteRequired(true);
-      const oldStartDate = originalRequest.startDate.toISOString().split('T')[0];
-      const oldEndDate = originalRequest.endDate.toISOString().split('T')[0];
-      setRequest((prev) => ({
-        ...prev,
-        note: `Old Start Date: ${oldStartDate}, Old End Date: ${oldEndDate}. ${prev.note}`,
-      }));
-    }
+
+    // Validate the field
+    validateField(name, value);
   };
 
-  const disWeekends = (current) => {
-    return current.getDay() !== 0 && current.getDay() !== 6;
+  const handleDateChange = (name, date) => {
+    setRequest((prevRequest) => ({
+      ...prevRequest,
+      [name]: date,
+    }));
+
+    // Mark the field as touched
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+
+    // Validate the field
+    validateField(name, date);
   };
 
   const validateDates = () => {
@@ -173,23 +165,84 @@ const UpdateRequest = () => {
     return new Date(endDate) >= new Date(startDate);
   };
 
-  const validateForm = (formValues) => {
-    const errors = {};
-    if (!formValues.startDate) {
-      errors.startDate = 'Start date is required';
+  const validateComment = (comment) => comment.length >= 10 && comment.length <= 100;
+
+  const validateField = (name, value) => {
+    const currentErrors = { ...errors };
+
+    switch (name) {
+      case 'startDate':
+        if (!value) {
+          currentErrors.startDate = 'Start date is required';
+        } else {
+          delete currentErrors.startDate;
+        }
+        break;
+      case 'endDate':
+        if (!value) {
+          currentErrors.endDate = 'End date is required';
+        } else if (!validateDates()) {
+          currentErrors.endDate = 'End date must be after start date';
+        } else {
+          delete currentErrors.endDate;
+        }
+        break;
+      case 'comment':
+        if (!validateComment(value)) {
+          currentErrors.comment = 'Comment must be between 10 and 100 characters';
+        } else {
+          delete currentErrors.comment;
+        }
+        break;
+      default:
+        break;
     }
-    if (!formValues.endDate) {
-      errors.endDate = 'End date is required';
+
+    setErrors(currentErrors);
+    setIsFormValid(Object.keys(currentErrors).length === 0);
+  };
+
+  const validateForm = () => {
+    const currentErrors = {};
+    if (!request.startDate) {
+      currentErrors.startDate = 'Start date is required';
+    }
+    if (!request.endDate) {
+      currentErrors.endDate = 'End date is required';
     } else if (!validateDates()) {
-      errors.endDate = 'End date must be after start date';
+      currentErrors.endDate = 'End date must be after start date';
     }
-    setErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (!validateComment(request.comment)) {
+      currentErrors.comment = 'Comment must be between 10 and 100 characters';
+    }
+    setErrors(currentErrors);
+    setIsFormValid(Object.keys(currentErrors).length === 0);
+    return Object.keys(currentErrors).length === 0;
+  };
+
+  const disWeekends = (current) => {
+    return current.getDay() !== 0 && current.getDay() !== 6;
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+    validateField(name, value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm(request)) {
+
+    setTouched({
+      startDate: true,
+      endDate: true,
+      comment: true,
+    });
+
+    if (!validateForm()) {
       return;
     }
 
@@ -206,19 +259,8 @@ const UpdateRequest = () => {
 
       try {
         await requestService.updateRequest(requestId, request);
-
-        if (employee) {
-          await EmailService.sendRequestUpdateEmail(employee.email, {
-            startDate: request.startDate.toISOString().split('T')[0],
-            endDate: request.endDate.toISOString().split('T')[0],
-            note: request.note,
-            status: request.status,
-            userName: employee.firstName,
-          });
-        }
-
         Swal.fire("Saved!", "", "success");
-        navigate('/requests');
+        navigate('/RequestEmployee');
       } catch (error) {
         console.error(`Error updating request with ID ${requestId}:`, error);
         Swal.fire("Error!", "There was a problem updating your request.", "error");
@@ -238,7 +280,7 @@ const UpdateRequest = () => {
             rgba(gradients.info.main, 0.6),
             rgba(gradients.info.state, 0.6),
           )}, url(${bgImage})`,
-        backgroundPositionY: "50%",
+        backgroundPositionY: '50%',
       }}
     >
       <DashboardNavbar />
@@ -254,7 +296,7 @@ const UpdateRequest = () => {
                 selected={request.startDate}
                 onChange={(date) => handleDateChange('startDate', date)}
                 dateFormat="dd-MM-yyyy"
-                minDate={new Date(today)}
+                minDate={new Date()}
                 filterDate={disWeekends}
                 customInput={
                   <TextField
@@ -266,11 +308,12 @@ const UpdateRequest = () => {
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
                     className={classes.textField}
+                    onBlur={handleBlur}
                     onChange={() => {}}
                   />
                 }
               />
-              <FormHelperText>{errors.startDate}</FormHelperText>
+              {errors.startDate && touched.startDate && <FormHelperText>{errors.startDate}</FormHelperText>}
             </FormControl>
             <FormControl fullWidth error={!!(errors.endDate && touched.endDate)}>
               <Typography className={classes.label}>End Date</Typography>
@@ -290,53 +333,22 @@ const UpdateRequest = () => {
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
                     className={classes.textField}
+                    onBlur={handleBlur}
                     onChange={() => {}}
                   />
                 }
               />
-              <FormHelperText>{errors.endDate}</FormHelperText>
+              {errors.endDate && touched.endDate && <FormHelperText>{errors.endDate}</FormHelperText>}
             </FormControl>
-            <FormControl fullWidth>
-              <Typography className={classes.label}>Status</Typography>
-              <Select
-                name="status"
-                value={request.status}
-                onChange={handleChange}
-                variant="outlined"
-                className={classes.textField}
-                sx={{
-                  marginTop: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
-              >
-                {statuses.map((status) => (
-                  <MenuItem key={status.value} value={status.value}>
-                    {status.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <Typography className={classes.label}>Note</Typography>
+            <FormControl fullWidth error={!!(errors.comment && touched.comment)}>
+              <Typography className={classes.label}>Comment</Typography>
               <TextField
-                name="note"
+                name="comment"
                 multiline
                 rows={4}
-                value={request.note}
+                value={request.comment}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 variant="outlined"
                 className={classes.textField}
                 sx={{
@@ -357,6 +369,7 @@ const UpdateRequest = () => {
                   },
                 }}
               />
+              <FormHelperText>{errors.comment}</FormHelperText>
             </FormControl>
 
             <Button
@@ -366,7 +379,7 @@ const UpdateRequest = () => {
               className={classes.button}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
+              {loading ? <CircularProgress size={24} /> : "Save"}
             </Button>
           </form>
         </Paper>
@@ -375,4 +388,4 @@ const UpdateRequest = () => {
   );
 };
 
-export default UpdateRequest;
+export default UpdateRequestEmp;
