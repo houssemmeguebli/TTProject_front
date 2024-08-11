@@ -5,62 +5,15 @@ import Calendar from "./layouts/Calendar";
 import Request from "./layouts/Request";
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
-
 import AuthService from "./_services/AuthService";
-import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import EmployeeProfiles from "./layouts/EmployeeProfiles";
 import Empolyee from "./layouts/Employee";
 import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
 import CalendarEmp from "./layouts/Employee/CalenderEmp";
+import { Logout } from "@mui/icons-material";
 
 const authService = new AuthService();
 const currentUser = authService.getCurrentUser();
-const Logout = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You will be logged out of your account.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, log out!',
-      cancelButtonText: 'Cancel'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await authService.logout();
-        navigate("/authentication/sign-in");
-        await Swal.fire(
-          'Logged Out!',
-          'You have been logged out successfully.',
-          'success'
-        );
-      } catch (error) {
-        console.error('Error logging out:', error);
-        await Swal.fire(
-          'Error!',
-          'There was an error logging out. Please try again.',
-          'error'
-        );
-      }
-    } else {
-      navigate("/dashboard"); // Navigate to dashboard if the user cancels the logout
-    }
-  };
-
-  React.useEffect(() => {
-    handleLogout();
-  }, []);
-
-  // Return nothing as the component's effect handles everything
-  return null;
-};
-
 
 
 const routes = [
@@ -71,7 +24,7 @@ const routes = [
     key: "Calendar",
     route: "/Calendar",
     icon: (
-      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-calendar-grid-58" />
+      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-calendar-grid-58" />
     ),
     component: <Calendar  />,
     roles: ["ProjectManager"],
@@ -83,7 +36,7 @@ const routes = [
     key: "CalendarEmployee",
     route: "/CalendarEmployee",
     icon: (
-      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-calendar-grid-58" />
+      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-calendar-grid-58" />
     ),
     component: <CalendarEmp  />,
     roles: ["Employee"],
@@ -95,7 +48,7 @@ const routes = [
     key: "Requests",
     route: "/Requests",
     icon: (
-      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-paper-diploma" />
+      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-paper-diploma" />
     ),
     component: <Request />,
     roles: ["ProjectManager"],
@@ -107,7 +60,7 @@ const routes = [
     key: "RequestEmployee",
     route: "/RequestEmployee",
     icon: (
-      <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-paper-diploma" />
+      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-paper-diploma" />
     ),
     component: <Empolyee />,
     roles: ["Employee"],
@@ -120,7 +73,7 @@ const routes = [
     name: "My Profile",
     key: "profileEmp",
     route: `/employee/${currentUser?.id || ""}`,
-    icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
+    icon: <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-single-02" />,
     component: <DetailsEmp />,
     roles: ["Employee"],
 
@@ -130,17 +83,17 @@ const routes = [
     name: "My Profile ",
     key: "profileManager",
     route: `/manager/${currentUser?.id || ""}`,
-    icon: <ArgonBox component="i" color="dark" fontSize="14px" className="ni ni-single-02" />,
+    icon: <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-single-02" />,
     component: <Profile />,
     roles: ["ProjectManager"],
 
   },
   {
     type: "route",
-    name: "Employees Profiles",
-    key: "Employees Profiles",
+    name: "Employee Profiles" ,
+    key: "Employee Profiles",
     route: "/EmployeeProfiles",
-    icon: <PeopleIcon color="dark" fontSize="14px" />,
+    icon: <PeopleIcon color="primary" fontSize="14px" />,
     component: <EmployeeProfiles />,
     roles: ["ProjectManager"],
   },

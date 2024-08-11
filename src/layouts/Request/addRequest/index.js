@@ -10,7 +10,7 @@ import {
   Autocomplete,
   FormControl,
   FormHelperText,
-  Box, CircularProgress,
+  Box, CircularProgress, Card,
 } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import RequestService from "../../../_services/RequestService";
@@ -198,8 +198,8 @@ const Index = ({ onSubmit }) => {
       }}
     >
       <DashboardNavbar />
-      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", marginTop: '8%', marginBottom: '8%' }}>
-        <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 800 }}>
+      <Container sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", marginTop: '8%', marginBottom: '8%' }}>
+        <Card elevation={1} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 800, maxHeight: "100%" }}>
           <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "text.primary", marginBottom: 3 }}>
             Create Request
           </Typography>
@@ -342,7 +342,7 @@ const Index = ({ onSubmit }) => {
               </Grid>
             </Grid>
           </form>
-        </Paper>
+        </Card>
       </Container>
     </DashboardLayout>
   );

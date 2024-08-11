@@ -223,6 +223,13 @@ const DetailsEmp = () => {
     }
   };
 
+  const statusColors = {
+    'Approved': '#4caf50', // Green
+    'Rejected': '#f44336', // Red
+    'Pending': '#ff9800',  // Orange
+  };
+
+
   const calculateStatistics = () => {
     const totalRequests = requests.length;
     const requestStatusCounts = requests.reduce((acc, request) => {
@@ -245,7 +252,18 @@ const DetailsEmp = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-  if (loading) return <CircularProgress />;
+  if (loading) return <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100vw'  // Full viewport width
+    }}
+  >
+    <CircularProgress />
+  </Box>;
+
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
@@ -260,16 +278,40 @@ const DetailsEmp = () => {
       <Box p={4}>
         {/* Profile Information Section */}
         <Card className={classes.card}>
-          <Box className={classes.profileHeader}>
+          <Box
+            className={classes.profileHeader}
+            display="flex"
+            flexDirection={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'center', md: 'flex-start' }}
+            justifyContent={{ xs: 'center', md: 'flex-start' }}
+            p={2} // Padding around the content
+          >
             <Avatar
-              src={employee?.profilePicture || "/path/to/default/avatar.jpg"}
+              src={employee?.profilePicture || '/path/to/default/avatar.jpg'}
               className={classes.profileAvatar}
+              sx={{
+                width: { xs: 50, md: 70 },
+                height: { xs: 50, md: 70 },
+                mb: { xs: 2, md: 0 },
+                mr: { md: 2 }
+              }}
             />
-            <Box className={classes.profileInfo}>
-              <Typography variant="h4">{`${employee?.firstName} ${employee?.lastName}`}</Typography>
-              <Typography variant="body1" color="textSecondary">{employee?.email}</Typography>
-              <Typography variant="body2" color="textSecondary">{employee?.phoneNumber}</Typography>
-              <Typography variant="body2" color="textSecondary"><strong>Role:</strong> {role[employee?.role]}
+            <Box
+              className={classes.profileInfo}
+              textAlign={{ xs: 'center', md: 'left' }}
+              width={{ xs: '100%', md: 'auto' }}
+            >
+              <Typography variant="h4" fontSize={{ xs: '1.5rem', md: '2rem' }}>
+                {`${employee?.firstName} ${employee?.lastName}`}
+              </Typography>
+              <Typography variant="body1" color="textSecondary">
+                {employee?.email}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {employee?.phoneNumber}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                <strong>Role:</strong> {role[employee?.role]}
               </Typography>
             </Box>
           </Box>
@@ -565,63 +607,104 @@ const DetailsEmp = () => {
 
         {/* Statistics Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle}>Statistics</Typography>
-          <Grid container spacing={2} className={classes.barChartContainer}>
+          <Typography variant="h4" className={classes.sectionTitle} gutterBottom>
+            Statistics
+          </Typography>
+          <Grid container spacing={3} className={classes.barChartContainer}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6">Request Status Distribution</Typography>
-              <PieChart width={400} height={300}>
-                <Pie
-                  data={pieChartData}
-                  cx={200}
-                  cy={150}
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+              <Typography variant="h6" gutterBottom>
+                Request Status Distribution
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <PieChart width={Math.min(400, window.innerWidth * 0.9)} height={300}>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius="80%"
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6">Request Count by Status</Typography>
-              <BarChart
-                width={400}
-                height={300}
-                data={pieChartData}
-                margin={{
-                  top: 5, right: 30, left: 20, bottom: 5,
-                }}
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#1976d2" />
-              </BarChart>
+              <Typography variant="h6" gutterBottom>
+                Request Count by Status
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <BarChart
+                  width={Math.min(400, window.innerWidth * 0.9)}
+                  height={300}
+                  data={pieChartData}
+                  margin={{
+                    top: 5, right: 30, left: 20, bottom: 5,
+                  }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                    <Bar  dataKey="value" fill="#0088FE"/>
+                </BarChart>
+              </Box>
             </Grid>
           </Grid>
         </Card>
 
         {/* Recent Requests Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle}>Recent Requests</Typography>
+          <Typography variant="h4" className={classes.sectionTitle} gutterBottom>
+            Recent Requests
+          </Typography>
           {requests.length > 0 ? (
             <Box>
               {requests.slice(0, 5).map(request => (
-                <ListItem key={request.id} className={classes.cuteListItem}>
-                  <Avatar alt={`Request ${request.requestId}`} src="/static/images/avatar/1.jpg" />
+                <ListItem
+                  key={request.id}
+                  className={classes.cuteListItem}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    '&:hover': {
+                      boxShadow: 2,
+                      backgroundColor: '#f5f5f5'
+                    }
+                  }}
+                >
+                  <Avatar
+                    alt={`Request ${request.requestId}`}
+                    src="/static/images/avatar/1.jpg"
+                    sx={{ width: { xs: 50, sm: 70 }, height: { xs: 50, sm: 70 }, mr: { sm: 2 }, mb: { xs: 2, sm: 0 } }}
+                  />
                   <ListItemText
-                    primary={`Request ID: ${request.requestId}`}
                     secondary={
-                      <Box className={classes.cuteListItemText}>
-                        <Typography variant="body2"><strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}</Typography>
-                        <Typography variant="body2"><strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}</Typography>
-                        <Typography variant="body2"><strong>Comment:</strong> {request.comment || "No comment"}</Typography>
-                        <Typography variant="body2"><strong>Note:</strong> {request.note || "No notes"}</Typography>
-                        <Typography variant="body2"><strong>Status:</strong> {Status[request.status]}</Typography>
+                      <Box className={classes.cuteListItemText} sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" gutterBottom>
+                          <strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}
+                        </Typography>
+                        <Typography variant="body2" gutterBottom>
+                          <strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}
+                        </Typography>
+                        <Typography variant="body2" gutterBottom>
+                          <strong>Comment:</strong> {request.comment || "No comment"}
+                        </Typography>
+                        <Typography variant="body2" gutterBottom>
+                          <strong>Note:</strong> {request.note || "No notes"}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Status:</strong> {Status[request.status]}
+                        </Typography>
                       </Box>
                     }
                   />
@@ -629,8 +712,8 @@ const DetailsEmp = () => {
               ))}
             </Box>
           ) : (
-            <Box className={classes.noRequestsBox}>
-              <Typography>No requests found for this employee.</Typography>
+            <Box className={classes.noRequestsBox} sx={{ textAlign: 'center', p: 2 }}>
+              <Typography variant="body1">No requests found for this employee.</Typography>
             </Box>
           )}
         </Card>

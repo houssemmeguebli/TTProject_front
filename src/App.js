@@ -20,7 +20,6 @@ import brandDark from "assets/images/logo-ct-dark.png";
 import "assets/css/nucleo-icons.css";
 import "assets/css/nucleo-svg.css";
 import Index from "./layouts/Request/addRequest";
-import Tables from "./layouts/Request";
 import UpdateRequest from "./layouts/Request/UpdateRequest/UpdateRequest";
 import Employee from "./layouts/Employee";
 import AddRequestEmp from "./layouts/Employee/AddRequestEmpolyee";
@@ -28,12 +27,11 @@ import UpdateRequestEmp from "./layouts/Employee/UpdateRequestEmp";
 import SignIn from "./layouts/authentication/sign-in";
 import { AuthProvider } from "./_services/AuthContext.js";
 import ProtectedRoute from "./_services/ProtectedRoute";
-import Unauthorized from "./Unauthorized/Unauthorized";
+import Unauthorized from "./layouts/Unauthorized/Unauthorized";
 import SignUp from "./layouts/authentication/sign-up";
 import EmployeeProfiles from "./layouts/EmployeeProfiles";
 import Profile from "./layouts/profile";
 import Calendar from "./layouts/Calendar";
-import Dashboard from "./layouts/dashboard";
 import Request from "./layouts/Request";
 import { Logout } from "@mui/icons-material";
 import AuthService from "./_services/AuthService";
@@ -41,7 +39,6 @@ import Swal from "sweetalert2";
 import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
 import CalendarEmp from "./layouts/Employee/CalenderEmp";
 import EmployeeChangePassword from "./layouts/authentication/ChangePassword/EmployeeChangePassword";
-import ProjectManagerService from "./_services/ProjectManagerService";
 import ProjectManagerChangePassword from "./layouts/authentication/ChangePassword/ProjectManagerChangePassword";
 const authService = new AuthService();
 
@@ -194,7 +191,7 @@ export default function App() {
               <Sidenav
                 color={sidenavColor}
                 brand={darkSidenav || darkMode ? brand : brandDark}
-                brandName="TTProject"
+                brandName="TTAPP"
                 routes={routes}
               />
               <Configurator />
@@ -216,7 +213,7 @@ export default function App() {
             <Sidenav
               color={sidenavColor}
               brand={darkSidenav || darkMode ? brand : brandDark}
-              brandName="TTProject"
+              brandName="TTAPP"
               routes={routes}
             />
             <Configurator />
@@ -233,7 +230,6 @@ export default function App() {
           {/* Protected Routes for All Users */}
           <Route element={<ProtectedRoute roles={[roles.projectManager, roles.employee]} />}>
             <Route path="/employee/:employeeId" element={<DetailsEmp />}/>
-            <Route path="/*" element={<Calendar />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/logout" element={<Logout />} />
           </Route>

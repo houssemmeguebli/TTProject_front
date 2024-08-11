@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Breadcrumbs, IconButton, Menu, Toolbar, AppBar, Icon } from "@mui/material";
+import { Breadcrumbs, IconButton, Menu, Toolbar, AppBar, Icon, Box } from "@mui/material";
 import ArgonBox from "../../../components/ArgonBox";
 import ArgonTypography from "../../../components/ArgonTypography";
 import NotificationItem from "../../Items/NotificationItem";
@@ -24,7 +24,7 @@ function DashboardNavbar({ absolute = false, light = true, isMini = false }) {
   useEffect(() => {
     // Fetch user information
     const currentUser = authService.getCurrentUser();
-    console.log("Current User:", currentUser); // Log user information
+    console.log("Current User:", currentUser);
     setUser(currentUser);
 
     // Setting the navbar type
@@ -104,14 +104,26 @@ function DashboardNavbar({ absolute = false, light = true, isMini = false }) {
             route={route}
             light={transparentNavbar ? light : false}
           />
-          <Icon fontSize="medium" sx={navbarDesktopMenu} onClick={handleMiniSidenav}>
-            {miniSidenav ? "menu_open" : "menu"}
-          </Icon>
+          <IconButton
+            onClick={handleMiniSidenav}
+            sx={{
+              width: '100%', // Make IconButton full width
+              display: 'flex',
+              justifyContent: 'center',
+              p: 0 // Remove default padding
+            }}
+            color="inherit" // Ensure it inherits the color if needed
+          >
+            <Icon fontSize="medium">
+              {miniSidenav ? "menu_open" : "menu"}
+            </Icon>
+          </IconButton>
+
+
         </ArgonBox>
         {!isMini && (
           <ArgonBox sx={(theme) => navbarRow(theme, { isMini })}>
 
-            <Link to="/profile">
               <ArgonBox
                 display="flex"
                 alignItems="center"
@@ -126,7 +138,6 @@ function DashboardNavbar({ absolute = false, light = true, isMini = false }) {
                   ({user?.department})
                 </ArgonTypography>
               </ArgonBox>
-            </Link>
             <IconButton
               size="small"
               color={light && transparentNavbar ? "white" : "dark"}

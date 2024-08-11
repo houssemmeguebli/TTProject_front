@@ -9,7 +9,7 @@ import {
   TextField,
   FormControl,
   FormHelperText,
-  CircularProgress,
+  CircularProgress, Card,
 } from "@mui/material";
 import { format } from 'date-fns';
 
@@ -180,8 +180,8 @@ const AddRequestEmp = ({ onSubmit }) => {
       }}
     >
       <DashboardNavbar />
-      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", marginTop: '10%', marginBottom: '10%' }}>
-        <Paper elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}>
+      <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", marginTop: '5%', marginBottom: '10%' }}>
+        <Card elevation={3} sx={{ padding: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold", color: "primary.main", marginBottom: 2 }}>
             Create Request
           </Typography>
@@ -295,7 +295,7 @@ const AddRequestEmp = ({ onSubmit }) => {
               </Grid>
             </Grid>
           </form>
-        </Paper>
+        </Card>
       </Container>
     </DashboardLayout>
   );

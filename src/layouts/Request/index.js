@@ -5,7 +5,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid, TextField, InputAdornment, Box,
+  Grid, TextField, InputAdornment, Box, Paper,
 } from "@mui/material";
 import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
 import ArgonBox from '../../components/ArgonBox';
@@ -29,6 +29,7 @@ import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
 import ProjectManagerService from "../../_services/ProjectManagerService";
 import clsx from "clsx";
+import { blue, red } from "@mui/material/colors";
 
 const requestService = new RequestService();
 const UserService = new ProjectManagerService();
@@ -170,6 +171,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'center',
     marginTop: theme.spacing(2),
+
   },
   addButton: {
     marginBottom: theme.spacing(2),
@@ -370,11 +372,10 @@ const Index = () => {
       <ArgonBox py={3} className={classes.card}>
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <ArgonTypography variant="h6" fontWeight="medium">Table of Requests</ArgonTypography>
+            <ArgonTypography variant="h6" fontWeight="medium" >Table of Requests</ArgonTypography>
             <Link to="/add" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
-                color="primary"
                 className={classes.addButton}
                 startIcon={<Add />}
               >
@@ -405,7 +406,7 @@ const Index = () => {
                 You can always add new requests or update existing ones through the provided forms.
               </Typography>
               <Link to="/add" style={{ textDecoration: 'none' }}>
-              <Button variant="contained" color="primary" style={{ marginTop: "20px", borderRadius: "8px" }}>
+              <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px",  backgroundColor: '#1976d2' }}>
                 Add New Request
               </Button>
               </Link>
@@ -592,19 +593,6 @@ const Index = () => {
           </ArgonBox>
 
 
-          <div className={classes.importantNotes}>
-            <Typography variant="h6">Important Information:</Typography>
-            <Typography variant="body2">
-              - Requests should be reviewed within 24 hours to ensure timely processing.
-              <br />
-              - Ensure that all required fields are filled out before submission.
-              <br />
-              - Users can only have one pending request at a time.
-              <br />
-              - Status updates are automatically recorded for audit purposes.
-            </Typography>
-          </div>
-
 
           <ArgonBox className={classes.summarySection}>
             <Typography variant="h6" style={{ fontWeight: 'bold', marginBottom: '16px' }}>
@@ -638,6 +626,7 @@ const Index = () => {
             </Grid>
           </ArgonBox>
         </Card>
+
       </ArgonBox>
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
         <DialogTitle className={classes.dialogTitle} style={{ color: "white"  }}>Request Details</DialogTitle>
@@ -704,6 +693,7 @@ const Index = () => {
         </DialogActions>
       </Dialog>
       <Footer />
+
     </DashboardLayout>
   );
 };

@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Card } from "@mui/material";
 import { format, parseISO } from "date-fns";
 import { makeStyles } from '@mui/styles';
 import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
@@ -192,102 +192,113 @@ const Calendar = () => {
       }}
     >
       <DashboardNavbar />
-      <Container sx={{ padding: 1 }}>
-        <Paper elevation={4} sx={{ padding: 2, borderRadius: 2 }}>
-          <Grid item xs={12} sm={4}>
-            <FormControl
-                sx={{ width:"30%",'& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: theme => theme.palette.primary.main,
+      <Container sx={{ padding: { xs: 2, sm: 3, md: 4 } }}>
+        <Card elevation={4} sx={{ padding: { xs: 2, sm: 3, md: 4 }, borderRadius: 2 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={4}>
+              <FormControl
+                sx={{
+                  width: { xs: "100%", sm: "70%", md: "50%" },
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme => theme.palette.primary.main,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme => theme.palette.primary.dark,
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme => theme.palette.primary.dark,
+                    },
+                    '& .MuiInputBase-input': {
+                      width: '100% !important',
+                    },
                   },
-                  '&:hover fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: theme => theme.palette.primary.dark,
-                  },
-                  '& .MuiInputBase-input': {
-                    width: '100% !important',
-                  },
-                },
-                   }}
-            >
-              <InputLabel>Status Filter</InputLabel>
-              <Select
-                value={filterStatus}
-                onChange={handleFilterChange}
-                label="Status Filter"
+                }}
               >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="0">Pending</MenuItem>
-                <MenuItem value="1">Approved</MenuItem>
-                <MenuItem value="3">Rejected</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <div className={classes.calendarContainer}>
-            <FullCalendar
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              events={filteredEvents}
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-              }}
-              dayCellDidMount={(info) => {
-                if (info.date.getDay() === 0 || info.date.getDay() === 6) {
-                  info.el.style.backgroundColor = '#f5f5f5';
-                }
-              }}
-              className={classes.calendar}
-            />
-          </div>
-
-          <ArgonBox className={classes.upcomingEventsSection}>
-            <Typography variant="h6">Upcoming Events</Typography>
-            <ul>
-              {filteredEvents.slice(0, 5).map(event => (
-                <li key={event.start}>
-                  <Typography variant="body2">
-                    {event.title} on {new Date(format(event.start,'dd-MM-yyyy')).toLocaleDateString()}
-
-                  </Typography>
-                </li>
-              ))}
-            </ul>
-          </ArgonBox>
-
-          <ArgonBox className={classes.requestSummarySection}>
-            <Typography variant="h6">Request Summary</Typography>
-            <Grid container spacing={2}>
-
-              <Grid item xs={12} sm={4}>
-                <Typography variant="body2">Total Requests: {filteredEvents.length}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography variant="body2">Approved: {approvedRequests}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography variant="body2">Pending: {pendingRequests}</Typography>
-              </Grid>
+                <InputLabel>Status Filter</InputLabel>
+                <Select
+                  value={filterStatus}
+                  onChange={handleFilterChange}
+                  label="Status Filter"
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="0">Pending</MenuItem>
+                  <MenuItem value="1">Approved</MenuItem>
+                  <MenuItem value="3">Rejected</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
-          </ArgonBox>
 
-          <ArgonBox className={classes.tipsSection}>
-            <Typography variant="h6">Tips for Using the Calendar</Typography>
-            <Typography variant="body2">
-              - Utilize color codes to quickly identify the status of events.<br />
-              - Review your calendar regularly to keep track of upcoming tasks and events.<br />
-              - Customize the calendar view to suit your preference (daily, weekly, monthly).<br />
-            </Typography>
-          </ArgonBox>
+            <Grid item xs={12}>
+              <div className={classes.calendarContainer}>
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  events={filteredEvents}
+                  headerToolbar={{
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                  }}
+                  dayCellDidMount={(info) => {
+                    if (info.date.getDay() === 0 || info.date.getDay() === 6) {
+                      info.el.style.backgroundColor = '#f5f5f5';
+                    }
+                  }}
+                  className={classes.calendar}
+                />
+              </div>
+            </Grid>
 
-        </Paper>
+            <Grid item xs={12}>
+              <ArgonBox className={classes.upcomingEventsSection}>
+                <Typography variant="h6">Upcoming Events</Typography>
+                <ul>
+                  {filteredEvents.slice(0, 5).map(event => (
+                    <li key={event.start}>
+                      <Typography variant="body2">
+                        {event.title} on {new Date(format(event.start,'dd-MM-yyyy')).toLocaleDateString()}
+                      </Typography>
+                    </li>
+                  ))}
+                </ul>
+              </ArgonBox>
+            </Grid>
+
+            <Grid item xs={12}>
+              <ArgonBox className={classes.requestSummarySection}>
+                <Typography variant="h6">Request Summary</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2">Total Requests: {filteredEvents.length}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2">Approved: {approvedRequests}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="body2">Pending: {pendingRequests}</Typography>
+                  </Grid>
+                </Grid>
+              </ArgonBox>
+            </Grid>
+
+            <Grid item xs={12}>
+              <ArgonBox className={classes.tipsSection}>
+                <Typography variant="h6">Tips for Using the Calendar</Typography>
+                <Typography variant="body2">
+                  - Utilize color codes to quickly identify the status of events.<br />
+                  - Review your calendar regularly to keep track of upcoming tasks and events.<br />
+                  - Customize the calendar view to suit your preference (daily, weekly, monthly).<br />
+                </Typography>
+              </ArgonBox>
+            </Grid>
+          </Grid>
+        </Card>
       </Container>
       <Footer />
     </DashboardLayout>
   );
+
 };
 
 export default Calendar;

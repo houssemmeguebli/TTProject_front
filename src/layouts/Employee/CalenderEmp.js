@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Card } from "@mui/material";
 import { format, parseISO } from 'date-fns';
 import { makeStyles } from '@mui/styles';
 
@@ -182,9 +182,10 @@ const CalendarEmp = () => {
     >
       <DashboardNavbar />
       <Container sx={{ padding: 1 }}>
-        <Paper elevation={4} sx={{ padding: 2, borderRadius: 2 }}>
+        <Card elevation={4} sx={{ padding: { xs: 2, sm: 3, md: 4 }, borderRadius: 2 }}>
           <Grid item xs={12} sm={4}>
-            <FormControl  sx={{ width:"30%",'& .MuiOutlinedInput-root': {
+            <FormControl  sx={{  width: { xs: "100%", sm: "50%", md: "30%" },
+              '& .MuiOutlinedInput-root': {
                 '& fieldset': {
                   borderColor: theme => theme.palette.primary.main,
                 },
@@ -269,7 +270,7 @@ const CalendarEmp = () => {
             </Typography>
           </ArgonBox>
 
-        </Paper>
+        </Card>
       </Container>
       <Footer />
     </DashboardLayout>

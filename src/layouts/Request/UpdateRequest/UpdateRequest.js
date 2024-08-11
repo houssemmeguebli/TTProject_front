@@ -11,6 +11,7 @@ import {
   FormControl,
   CircularProgress,
   FormHelperText,
+  Card,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
 import RequestService from '../../../_services/RequestService';
@@ -243,7 +244,7 @@ const UpdateRequest = () => {
     >
       <DashboardNavbar />
       <Container className={classes.container}>
-        <Paper className={classes.paper}>
+        <Card className={classes.paper}>
           <Typography variant="h4" className={classes.title}>
             Update Request
           </Typography>
@@ -369,7 +370,7 @@ const UpdateRequest = () => {
               {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
             </Button>
           </form>
-        </Paper>
+        </Card>
       </Container>
     </DashboardLayout>
   );

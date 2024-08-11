@@ -96,7 +96,7 @@ function SignIn() {
         console.log('No token found in response.');
         Swal.fire({
           title: 'Error',
-          text: 'Invalid login attempt.',
+          text: 'Invalid login attempt',
           icon: 'error',
           confirmButtonText: 'OK',
         });
@@ -105,8 +105,8 @@ function SignIn() {
       console.error('Login error:', error);
       Swal.fire({
         title: 'Error',
-        text: error.response ? error.response.data.message : error.message,
-        icon: 'error',
+        text: 'Invalid login Credentials',
+        icon: 'warning',
         confirmButtonText: 'OK',
       });
     }

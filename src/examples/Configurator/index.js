@@ -1,17 +1,4 @@
-/**
-=========================================================
-* Argon Dashboard 2 MUI - v3.0.1
-=========================================================
 
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-material-ui
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 
 // react-github-btn
 import GitHubButton from "react-github-btn";
@@ -73,7 +60,7 @@ function Configurator() {
         px={3}
       >
         <ArgonBox>
-          <ArgonTypography variant="h5">Argon Configurator</ArgonTypography>
+          <ArgonTypography variant="h5">TTAPP Configurator</ArgonTypography>
           <ArgonTypography variant="body2" color="text">
             See our dashboard options.
           </ArgonTypography>
@@ -187,84 +174,6 @@ function Configurator() {
           <Switch checked={darkMode} onChange={handleDarkMode} />
         </ArgonBox>
 
-        <ArgonBox mt={5} mb={2}>
-          <ArgonBox mb={2}>
-            <ArgonButton
-              component={Link}
-              href="https://www.creative-tim.com/product/argon-dashboard-pro-material-ui"
-              target="_blank"
-              rel="noreferrer"
-              color="info"
-              fullWidth
-            >
-              Buy Now
-            </ArgonButton>
-          </ArgonBox>
-          <ArgonBox mb={2}>
-            <ArgonButton
-              component={Link}
-              href="https://www.creative-tim.com/product/argon-dashboard-material-ui"
-              target="_blank"
-              rel="noreferrer"
-              color="dark"
-              fullWidth
-            >
-              Free Download
-            </ArgonButton>
-          </ArgonBox>
-          <ArgonButton
-            component={Link}
-            href="https://www.creative-tim.com/learning-lab/react/quick-start/argon-dashboard/"
-            target="_blank"
-            rel="noreferrer"
-            color={darkMode ? "white" : "dark"}
-            variant="outlined"
-            fullWidth
-          >
-            View Documentation
-          </ArgonButton>
-        </ArgonBox>
-        <ArgonBox display="flex" justifyContent="center">
-          <GitHubButton
-            href="https://github.com/creativetimofficial/argon-dashboard-material-ui"
-            data-icon="octicon-star"
-            data-size="large"
-            data-show-count="true"
-            aria-label="Star creativetimofficial/argon-dashboard-material-uit on GitHub"
-          >
-            Star
-          </GitHubButton>
-        </ArgonBox>
-        <ArgonBox mt={3} textAlign="center">
-          <ArgonBox mb={0.5}>
-            <ArgonTypography variant="h6">Thank you for sharing!</ArgonTypography>
-          </ArgonBox>
-
-          <ArgonBox display="flex" justifyContent="center">
-            <ArgonBox mr={1.5}>
-              <ArgonButton
-                component={Link}
-                href="//twitter.com/intent/tweet?text=Check%20Argon%20Dashboard%202%20PRO%20MUI%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23react%20%mui&url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fargon-dashboard-material-ui"
-                target="_blank"
-                rel="noreferrer"
-                color="dark"
-              >
-                <TwitterIcon />
-                &nbsp; Tweet
-              </ArgonButton>
-            </ArgonBox>
-            <ArgonButton
-              component={Link}
-              href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard-material-ui"
-              target="_blank"
-              rel="noreferrer"
-              color="dark"
-            >
-              <FacebookIcon />
-              &nbsp; Share
-            </ArgonButton>
-          </ArgonBox>
-        </ArgonBox>
       </ArgonBox>
     </ConfiguratorRoot>
   );

@@ -43,7 +43,6 @@ class AuthService {
     if (token) {
       try {
         const decodedToken = jwtDecode(token); // Decode the token
-        console.log('Decoded Token:', decodedToken);
         return {
           id: decodedToken.id,
           role: decodedToken.role,

@@ -66,6 +66,10 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '8px',
     padding: theme.spacing(2),
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    flexDirection: 'column',
+    [theme.breakpoints.up('md')]: {
+      flexDirection: 'row',
+    },
   },
   profileAvatar: {
     width: 120,
@@ -248,7 +252,17 @@ const DetailsManager = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-  if (loading) return <CircularProgress />;
+  if (loading) return <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100vw'  // Full viewport width
+    }}
+  >
+    <CircularProgress />
+  </Box>;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
@@ -263,19 +277,44 @@ const DetailsManager = () => {
       <Box p={4}>
         {/* Profile Information Section */}
         <Card className={classes.card}>
-          <Box className={classes.profileHeader}>
+          <Box
+            className={classes.profileHeader}
+            display="flex"
+            flexDirection={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'center', md: 'flex-start' }}
+            justifyContent={{ xs: 'center', md: 'flex-start' }}
+            p={2} // Padding around the content
+          >
             <Avatar
               src={employee?.profilePicture || '/path/to/default/avatar.jpg'}
               className={classes.profileAvatar}
+              sx={{
+                width: { xs: 50, md: 70 },
+                height: { xs: 50, md: 70 },
+                mb: { xs: 2, md: 0 },
+                mr: { md: 2 }
+              }}
             />
-            <Box className={classes.profileInfo}>
-              <Typography variant="h4">{`${employee?.firstName} ${employee?.lastName}`}</Typography>
-              <Typography variant="body1" color="textSecondary">{employee?.email}</Typography>
-              <Typography variant="body2" color="textSecondary">{employee?.phoneNumber}</Typography>
-              <Typography variant="body2" color="textSecondary"><strong>Role:</strong> {role[employee?.role]}</Typography>
+            <Box
+              className={classes.profileInfo}
+              textAlign={{ xs: 'center', md: 'left' }}
+              width={{ xs: '100%', md: 'auto' }}
+            >
+              <Typography variant="h4" fontSize={{ xs: '1.5rem', md: '2rem' }}>
+                {`${employee?.firstName} ${employee?.lastName}`}
+              </Typography>
+              <Typography variant="body1" color="textSecondary">
+                {employee?.email}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {employee?.phoneNumber}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                <strong>Role:</strong> {role[employee?.role]}
+              </Typography>
             </Box>
-
           </Box>
+
           <Divider />
           <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
           <Grid container spacing={2}>
