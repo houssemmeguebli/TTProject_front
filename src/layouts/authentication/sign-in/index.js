@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import ArgonBox from 'components/ArgonBox';
 import ArgonInput from 'components/ArgonInput';
 import ArgonButton from 'components/ArgonButton';
@@ -159,6 +159,11 @@ function SignIn() {
               {showPassword ? <Visibility /> : <VisibilityOff />}
             </button>
           </ArgonBox>
+        </ArgonBox>
+        <ArgonBox mb={2} textAlign="right">
+          <Link to="/forgotpassword" style={{ textDecoration: 'none', color: '#00c6ff', fontSize: '0.875rem' }}>
+            Forgot Password ?
+          </Link>
         </ArgonBox>
         <ArgonBox mt={4} mb={1}>
           <ArgonButton type="submit" color="info" size="large" fullWidth>

@@ -238,7 +238,7 @@ const CalendarEmp = () => {
               {filteredEvents.slice(0, 5).map(event => (
                 <li key={event.start}>
                   <Typography variant="body2">
-                    {event.title} on {new Date(format(new Date(event.start), 'dd-MM-yyyy')).toLocaleDateString()}
+                    {event.title} on {format(new Date(event.start), 'dd-MM-yyyy')}
                   </Typography>
                 </li>
               ))}

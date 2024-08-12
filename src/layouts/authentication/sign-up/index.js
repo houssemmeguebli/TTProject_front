@@ -165,6 +165,7 @@ function Cover() {
       Gender: Number(formData.Gender),
       role: Number(formData.role),
     };
+
     setLoading(true);
 
     try {
@@ -174,18 +175,21 @@ function Cover() {
       navigate('/EmployeeProfiles');
     } catch (error) {
       console.error("Error creating user:", error);
-      if (error.response && error.response.data) {
-        console.error("Validation errors:", error.response.data.errors);
-        Swal.fire("Error!", "Validation errors occurred. Check console for details.", "error");
-      } else {
-        Swal.fire("Error!", "Error registering user or sending email.", "error");
+
+      let errorMessage = "Error registering user or sending email.";
+      if (error.response && error.response.data && Array.isArray(error.response.data.$values)) {
+        // Extract and format the error messages
+        const errorDetails = error.response.data.$values.map(e => e.description).join('<br />');
+        errorMessage = errorDetails;
       }
+
+      Swal.fire("Error!", errorMessage, "error");
     } finally {
       setLoading(false);
     }
-    }
-    ;
-    const today = new Date().toISOString().split('T')[0];
+  };
+
+  const today = new Date().toISOString().split('T')[0];
 
     return (
       <DashboardLayout

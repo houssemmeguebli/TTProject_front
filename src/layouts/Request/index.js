@@ -5,7 +5,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid, TextField, InputAdornment, Box, Paper,
+  Grid, TextField, InputAdornment, Box, Paper, CircularProgress,
 } from "@mui/material";
 import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
 import ArgonBox from '../../components/ArgonBox';
@@ -221,11 +221,13 @@ const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
+  const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
     fetchRequests();
   }, []);
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 700);
@@ -237,30 +239,6 @@ const Index = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-
-  const fetchRequests = async () => {
-    try {
-      const result = await requestService.getAllRequests();
-
-      if (result && Array.isArray(result.$values)) {
-        setRequestsData(result.$values);
-        await fetchUsers(result.$values.map(request => request.userId));
-      } else {
-        console.error('Expected an array of requests, received:', result);
-      }
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-    }
-  };
-  const handleViewDetails = (request) => {
-    setSelectedRequest(request);
-    setOpenDialog(true);
-  };
-  const handleDialogClose = () => {
-    setOpenDialog(false);
-  };
-
   const fetchUsers = async (userIds) => {
     try {
       const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
@@ -277,6 +255,45 @@ const Index = () => {
       console.error('Error fetching users:', error);
     }
   };
+
+
+  const fetchRequests = async () => {
+    try {
+
+      const result = await requestService.getAllRequests();
+
+      if (result && Array.isArray(result.$values)) {
+        setRequestsData(result.$values);
+        await fetchUsers(result.$values.map(request => request.userId));
+      } else {
+        console.error('Expected an array of requests, received:', result);
+      }
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+    }finally {
+      setLoading(false);
+    }
+  };
+  if (loading) return <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100vw'  // Full viewport width
+    }}
+  >
+    <CircularProgress />
+  </Box>;
+
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+    setOpenDialog(true);
+  };
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
 
   const handleDelete = async (requestId) => {
     const result = await Swal.fire({
@@ -406,7 +423,7 @@ const Index = () => {
                 You can always add new requests or update existing ones through the provided forms.
               </Typography>
               <Link to="/add" style={{ textDecoration: 'none' }}>
-              <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px",  backgroundColor: '#1976d2' }}>
+              <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px",   }}>
                 Add New Request
               </Button>
               </Link>

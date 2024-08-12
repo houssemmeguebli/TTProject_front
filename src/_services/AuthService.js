@@ -114,8 +114,41 @@ class AuthService {
       throw error;
     }
   }
+  async forgotPassword(email) {
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/forgot-password`,
+        { email },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error requesting PIN code:', error.response ? error.response.data : error.message);
+      throw error;
+    }
+  }
 
-
+  async resetPassword(email, pinCode, newPassword) {
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/reset-password`,
+        { email, pinCode, newPassword },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error resetting password:', error.response ? error.response.data : error.message);
+      throw error;
+    }
+  }
 }
 
-  export default AuthService;
+export default AuthService;

@@ -11,7 +11,18 @@ import Footer from "../../examples/Footer";
 import ArgonBox from "../../components/ArgonBox";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
-import { Button, Container, Grid, IconButton, InputAdornment, TextField, Card, Typography, Box } from "@mui/material";
+import {
+  Button,
+  Container,
+  Grid,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Card,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import {  format, parseISO } from "date-fns";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -173,10 +184,40 @@ const Empolyee = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRequests();
   }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const fetchUsers = async (userIds) => {
+    try {
+      const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
+      const users = responses.reduce((acc, data) => {
+        if (data && data.userId) {
+          acc[data.userId] = `${data.firstName} ${data.lastName}`;
+        } else {
+          console.warn('No userId found in response:', data);
+        }
+        return acc;
+      }, {});
+      setUserMap(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
   const currentUser = authService.getCurrentUser();
   console.log("id :",currentUser.id);
 
@@ -193,42 +234,30 @@ const Empolyee = () => {
       }
     } catch (error) {
       console.error('Error fetching requests:', error);
+    }finally {
+      setLoading(false);
     }
   };
+
+  if (loading) return <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100vw'  // Full viewport width
+    }}
+  >
+    <CircularProgress />
+  </Box>;
+
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
     setOpenDialog(true);
   };
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 700);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const handleDialogClose = () => {
     setOpenDialog(false);
-  };
-  const fetchUsers = async (userIds) => {
-    try {
-      const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
-      const users = responses.reduce((acc, data) => {
-        if (data && data.userId) {
-          acc[data.userId] = `${data.firstName} ${data.lastName}`;
-        } else {
-          console.warn('No userId found in response:', data);
-        }
-        return acc;
-      }, {});
-      setUserMap(users);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
   };
 
   const handleDelete = async (requestId) => {

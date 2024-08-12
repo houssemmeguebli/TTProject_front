@@ -32,7 +32,7 @@ const routes = [
   },
   {
     type: "route",
-    name: "CalendarEmp ",
+    name: "Calendar ",
     key: "CalendarEmployee",
     route: "/CalendarEmployee",
     icon: (
@@ -44,7 +44,7 @@ const routes = [
   },
   {
     type: "route",
-    name: "Liste of Requests",
+    name: "List of Requests",
     key: "Requests",
     route: "/Requests",
     icon: (
@@ -56,7 +56,7 @@ const routes = [
   },
   {
     type: "route",
-    name: "Liste of Requests",
+    name: "List of Requests",
     key: "RequestEmployee",
     route: "/RequestEmployee",
     icon: (
@@ -93,7 +93,7 @@ const routes = [
     name: "Employee Profiles" ,
     key: "Employee Profiles",
     route: "/EmployeeProfiles",
-    icon: <PeopleIcon color="primary" fontSize="14px" />,
+    icon: <PeopleIcon  color="primary" fontSize="14px" />,
     component: <EmployeeProfiles />,
     roles: ["ProjectManager"],
   },
@@ -103,7 +103,7 @@ const routes = [
     name: "Logout",
     key: "logout",
     route: "/logout",
-    icon: <LogoutIcon color="error" fontSize="14px" />,
+    icon: <LogoutIcon  color="error" fontSize="14px" />,
     component: <Logout />,
     roles: ["ProjectManager","Employee"],
 

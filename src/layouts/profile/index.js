@@ -14,7 +14,7 @@ import {
   Select,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import {  useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import EmployeeService from "../../_services/EmployeeService";
@@ -570,7 +570,7 @@ const DetailsManager = () => {
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="white"
                   onClick={handleSave}
                   style={{ marginRight: 8 }}
                 >
@@ -585,10 +585,24 @@ const DetailsManager = () => {
                 </Button>
               </Box>
             ) : (
-              <Box display="flex" justifyContent="flex-end">
+              <Box display="flex" justifyContent="flex-end" gap={2}>
+                <Button
+                  component={Link}
+                  to={`/change-Managerpassword/${employee.id}`}
+                  variant="contained"
+                  color="white"
+                  sx={{
+                    textTransform: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Change Password
+                </Button>
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="white"
                   onClick={() => setEditing(true)}
                 >
                   Edit

@@ -62,6 +62,8 @@ function EmployeeChangePassword() {
       await employeeService.updateEmployee(userID, updatedUser);
       Swal.fire("Success!", "Password changed successfully. Please sign in again.", "success");
       navigate("/authentication/sign-in");
+      localStorage.removeItem('token');
+
     } catch (error) {
       Swal.fire("Error!", `Failed to change password: ${error.message}`, "error");
     }

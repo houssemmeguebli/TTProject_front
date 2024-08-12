@@ -14,7 +14,7 @@ import {
   Select,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import {  useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
 import EmployeeService from "../../_services/EmployeeService";
@@ -314,7 +314,9 @@ const DetailsEmp = () => {
                 <strong>Role:</strong> {role[employee?.role]}
               </Typography>
             </Box>
+
           </Box>
+
           <Divider />
           <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
           <Grid container spacing={2}>
@@ -410,6 +412,7 @@ const DetailsEmp = () => {
                 }}
               />
             </Grid>
+
             {connectedUser.role === "ProjectManager" && (
               <>
                 <Grid item xs={12} md={6}>
@@ -572,12 +575,13 @@ const DetailsEmp = () => {
               </>
             )}
           </Grid>
+
           <Box mt={2}>
             {editing ? (
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="white"
                   onClick={handleSave}
                   style={{ marginRight: 8 }}
                 >
@@ -592,16 +596,34 @@ const DetailsEmp = () => {
                 </Button>
               </Box>
             ) : (
-              <Box display="flex" justifyContent="flex-end">
+              <Box display="flex" justifyContent="flex-end" gap={2}>
+                {connectedUser.role === "Employee" && (
+                  <Button
+                    component={Link}
+                    to={`/change-Employeepassword/${employee.id}`}
+                    variant="contained"
+                    color="white"
+                    sx={{
+                      textTransform: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Change Password
+                  </Button>
+                )}
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="white"
                   onClick={() => setEditing(true)}
                 >
                   Edit
                 </Button>
               </Box>
+
             )}
+
           </Box>
         </Card>
 

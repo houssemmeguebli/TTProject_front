@@ -16,7 +16,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions, CardContent,
+  DialogActions, CardContent, CircularProgress,
 } from "@mui/material";
 import EmployeeService from '../../_services/EmployeeService';
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
@@ -142,34 +142,26 @@ const EmployeeTable = () => {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const data = await employeeService.getAllEmployees();
-        if (Array.isArray(data.$values)) {
-          setEmployees(data.$values);
-          setFilteredEmployees(data.$values);
-        } else {
-          throw new Error('Unexpected data format');
-        }
-      } catch (error) {
-        setError('Failed to fetch employees');
-        console.error('Error fetching employees:', error);
-      } finally {
-        setLoading(false);
-      }
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
     };
 
-    fetchEmployees();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
+
 
   useEffect(() => {
     const filtered = employees.filter(employee =>
@@ -183,17 +175,6 @@ const EmployeeTable = () => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage - 1); // Adjust for zero-based page index
   };
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 700);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
 
   const handleChangeRowsPerPage = (event) => {
@@ -323,6 +304,40 @@ const EmployeeTable = () => {
         return 'black';
     }
   };
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+
+        const data = await employeeService.getAllEmployees();
+        if (Array.isArray(data.$values)) {
+          setEmployees(data.$values);
+          setFilteredEmployees(data.$values);
+        } else {
+          throw new Error('Unexpected data format');
+        }
+      } catch (error) {
+        setError('Failed to fetch employees');
+        console.error('Error fetching employees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  if (loading) return <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100vw'  // Full viewport width
+    }}
+  >
+    <CircularProgress />
+  </Box>;
+
 
 
 

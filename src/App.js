@@ -40,6 +40,8 @@ import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
 import CalendarEmp from "./layouts/Employee/CalenderEmp";
 import EmployeeChangePassword from "./layouts/authentication/ChangePassword/EmployeeChangePassword";
 import ProjectManagerChangePassword from "./layouts/authentication/ChangePassword/ProjectManagerChangePassword";
+import ForgotPassword from "./layouts/authentication/ForgotPassword/forgoetPassword";
+import ResetPassword from "./layouts/authentication/ResetPassword/ResetPassword";
 const authService = new AuthService();
 
 export default function App() {
@@ -225,6 +227,8 @@ export default function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/change-Employeepassword/:userID" element={<EmployeeChangePassword />} />
           <Route path="/change-Managerpassword/:ManagerID" element={<ProjectManagerChangePassword />} />
+          <Route path="/forgotPassword" element={<ForgotPassword />} />
+          <Route path="/resetPassword" element={<ResetPassword />} />
 
 
           {/* Protected Routes for All Users */}
