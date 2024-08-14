@@ -11,7 +11,7 @@ import {
   Button,
   ListItemText,
   ListItem,
-  Select,
+  Select, FormHelperText, FormControl,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Link, useParams } from "react-router-dom";
@@ -139,7 +139,11 @@ const DetailsManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
   const [formData, setFormData] = useState({
+
     firstName: '',
     lastName: '',
     email: '',
@@ -151,7 +155,61 @@ const DetailsManager = () => {
 
   });
   const currentUser = authService.getCurrentUser();
-  const userid = currentUser.id;  // Get the current user's role
+  const userid = currentUser.id;
+  const today = new Date().toISOString().split('T')[0];
+  const validateField = (name, value) => {
+    let error = "";
+    if (name === "firstName" || name === "lastName" || name === "department" || name === "projectName") {
+      if (!value) {
+        error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+      } else if (value.length > 30) {
+        error = `${name.charAt(0).toUpperCase() + name.slice(1)} must be under 30 characters`;
+      }
+    } else if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!value) {
+        error = "Email is required";
+      } else if (!emailRegex.test(value)) {
+        error = "Invalid email format";
+      }
+    } else if (name === "phoneNumber") {
+      const phoneNumberRegex = /^\d{8}$/;
+      if (!value) {
+        error = "Phone is required";
+      } else if (!phoneNumberRegex.test(value)) {
+        error = "Phone number must be 8 digits";
+      }
+    }  else if (name === "dateOfbirth") {
+      if (!value) {
+        error = "Date of Birth is required";
+      }
+    }
+    return error;
+  };
+
+  const validateForm = (formValues) => {
+    const errors = {};
+    for (const [key, value] of Object.entries(formValues)) {
+      if (key !== "role") {
+        const error = validateField(key, value);
+        if (error) errors[key] = error;
+      }
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  useEffect(() => {
+    setIsFormValid(validateForm(formData));
+  }, [formData]);
+
+  const handleBlur = (event) => {
+    const { name } = event.target;
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+  };
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
       try {
@@ -195,11 +253,19 @@ const DetailsManager = () => {
   }, [employeeId]);
 
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
   };
   console.log('FormData:', formData);
 
@@ -263,7 +329,14 @@ const DetailsManager = () => {
   >
     <CircularProgress />
   </Box>;
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (error) return <Box color="error"  sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    width: '100vw',
+    color:"red"
+  }}>{error}</Box>;
 
   return (
     <DashboardLayout
@@ -319,6 +392,8 @@ const DetailsManager = () => {
           <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
+
               <TextField
                 label="First Name"
                 name="firstName"
@@ -326,6 +401,8 @@ const DetailsManager = () => {
                 fullWidth
                 value={formData.firstName}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -347,8 +424,12 @@ const DetailsManager = () => {
                   },
                 }}
               />
+                {errors.firstName && touched.firstName && <FormHelperText>{errors.firstName}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.lastName && touched.lastName} sx={{ mb: 2 }}>
+
               <TextField
                 label="Last Name"
                 name="lastName"
@@ -356,6 +437,8 @@ const DetailsManager = () => {
                 fullWidth
                 value={formData.lastName}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -377,8 +460,12 @@ const DetailsManager = () => {
                   },
                 }}
               />
+                {errors.lastName && touched.lastName && <FormHelperText>{errors.lastName}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
+
               <TextField
                 label="Email"
                 name="email"
@@ -386,6 +473,8 @@ const DetailsManager = () => {
                 fullWidth
                 value={formData.email}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -407,18 +496,25 @@ const DetailsManager = () => {
                   },
                 }}
               />
+                {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.dateOfbirth && touched.dateOfbirth} sx={{ mb: 2 }}>
               <TextField
                 label="Date of Birth"
                 name="dateOfBirth"
                 variant="outlined"
                 fullWidth
+                onBlur={handleBlur}
                 value={format(new Date(formData.dateOfbirth),  "yyyy-MM-dd")}
                 onChange={handleInputChange}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
+                maxDate={new Date(today)}
+                inputProps={{ max: today }}
+
                 type="date"
                 sx={{
                   marginTop: 1,
@@ -438,8 +534,12 @@ const DetailsManager = () => {
                   },
                 }}
               />
+              {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
+            </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.phoneNumber && touched.phoneNumber} sx={{ mb: 2 }}>
+
               <TextField
                 label="Phone Number"
                 name="phoneNumber"
@@ -447,6 +547,8 @@ const DetailsManager = () => {
                 fullWidth
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -468,8 +570,11 @@ const DetailsManager = () => {
                   },
                 }}
               />
+                {errors.phoneNumber && touched.phoneNumber && <FormHelperText>{errors.phoneNumber}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
               <TextField
                 label="Department"
                 name="department"
@@ -477,6 +582,8 @@ const DetailsManager = () => {
                 fullWidth
                 value={formData.department}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
+
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -498,14 +605,18 @@ const DetailsManager = () => {
                   },
                 }}
               />
+                {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.projectName && touched.projectName} sx={{ mb: 2 }}>
               <TextField
                 label="Project Name"
                 name="projectName"
                 variant="outlined"
                 fullWidth
                 value={formData.projectName}
+                onBlur={handleBlur}
                 onChange={handleInputChange}
                 disabled={!editing}
                 className={classes.formControl}
@@ -528,6 +639,8 @@ const DetailsManager = () => {
                   },
                 }}
               />
+              {errors.projectName && touched.projectName && <FormHelperText>{errors.projectName}</FormHelperText>}
+            </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
               <Select
@@ -572,6 +685,7 @@ const DetailsManager = () => {
                   variant="contained"
                   color="white"
                   onClick={handleSave}
+                  disabled={!isFormValid}
                   style={{ marginRight: 8 }}
                 >
                   Save

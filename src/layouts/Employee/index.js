@@ -35,6 +35,7 @@ import AuthService from "../../_services/AuthService";
 import RequestService from "../../_services/RequestService";
 import ProjectManagerService from "../../_services/ProjectManagerService";
 import clsx from "clsx";
+import MenuItem from "@mui/material/MenuItem";
 
 const employeeService = new EmployeeService();
 const authService = new AuthService();
@@ -169,7 +170,6 @@ const useStyles = makeStyles((theme) => ({
 const Status = {
   0: 'Pending',
   1: 'Approved',
-  2: 'Updated',
   3: 'Rejected',
 };
 
@@ -185,6 +185,7 @@ const Empolyee = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     fetchRequests();
@@ -315,11 +316,17 @@ const Empolyee = () => {
     setSearchQuery(event.target.value);
   };
 
-  const filteredRequests = requestsData.filter(request => {
+  const filteredRequests = requestsData.filter((request) => {
     const userName = userMap[request.userId]?.toLowerCase() || '';
-    return userName.includes(searchQuery.toLowerCase());
-  });
 
+    // Filter by status if a status filter is applied
+    const statusMatches = filterStatus === 'all' || Status[request.status] === filterStatus;
+
+    // Filter by name if a search query is present
+    const nameMatches = userName.includes(searchQuery.toLowerCase());
+
+    return statusMatches && nameMatches;
+  });
   const indexOfLastRequest = currentPage * rowsPerPage;
   const indexOfFirstRequest = indexOfLastRequest - rowsPerPage;
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
@@ -345,6 +352,10 @@ const Empolyee = () => {
 
     return count;
   };
+  const handleStatusChange = (event) => {
+    setFilterStatus(event.target.value);
+  };
+
 
 
 
@@ -372,6 +383,66 @@ const Empolyee = () => {
               </Button>
             </Link>
           </ArgonBox>
+     <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+          <TextField
+            select
+            label="Filter Status"
+            value={filterStatus}
+            onChange={handleStatusChange}
+            variant="outlined"
+            sx={{
+              width: { xs: "100%", sm: "70%", md: "20%" },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: theme => theme.palette.primary.main,
+                },
+                '&:hover fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '& .MuiInputBase-input': {
+                  width: '100% !important',
+                },
+              },
+            }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            {Object.keys(Status).map((key) => (
+              <MenuItem key={key} value={Status[key]}>
+                {Status[key]}
+              </MenuItem>
+            ))}
+          </TextField>
+            <TextField
+              variant="outlined"
+              placeholder="Search by Name"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon style={{ color: '#1976d2' }} />
+                  </InputAdornment>
+                ),
+              }}
+              style={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                  transition: 'border-color 0.3s, box-shadow 0.3s',
+                  '&:hover fieldset': {
+                    borderColor: '#1976d2',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1976d2',
+                    boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
+                  },
+                },
+              }}
+            />
+      </ArgonBox>
+
           {currentRequests.length === 0 ? (
             <div style={{ textAlign: "center", marginTop: "50px", padding: "30px", backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
               <Typography variant="h5" style={{ fontWeight: 500, color: "#333" }}>
@@ -392,34 +463,6 @@ const Empolyee = () => {
           ) : (
             <>
           <ArgonBox className={classes.tableContainer}>
-            <ArgonBox className="search-input-container" mb={2}>
-              <TextField
-                variant="outlined"
-                placeholder="Search by Name"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon style={{ color: '#1976d2' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                style={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '20px',
-                    transition: 'border-color 0.3s, box-shadow 0.3s',
-                    '&:hover fieldset': {
-                      borderColor: '#1976d2',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#1976d2',
-                      boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
-                    },
-                  },
-                }}
-              />
-            </ArgonBox>
             {isMobile ? (
               currentRequests.map(request => (
                 <Card key={request.requestId} className={classes.card}>

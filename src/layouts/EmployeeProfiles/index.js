@@ -30,6 +30,7 @@ import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
 import Footer from "../../examples/Footer";
 import Swal from "sweetalert2";
+import MenuItem from "@mui/material/MenuItem";
 
 const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
@@ -134,6 +135,44 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '8px',
     border: `1px solid ${theme.palette.primary.main}`,
   },
+  statusCell: {
+    width: "140px",
+    fontWeight: 600,
+    padding: "12px 20px",
+    textAlign: "center",
+    borderRadius: "5px",
+    justifyContent: "center",
+    color: "#fff",
+    transition: "background-color 0.3s, transform 0.2s",
+    display: "inline-block",
+    fontSize: "16px",
+    textTransform: "uppercase",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    [theme.breakpoints.down("sm")]: {
+      width: "100%",
+      fontSize: "12px",
+      padding: "10px 15px",
+    },
+  },
+  statusActive: {
+    backgroundColor: '#4caf50', // Green for active
+    '&:hover': {
+      backgroundColor: '#388e3c', // Darker green on hover
+    },
+  },
+  statusInactive: {
+    backgroundColor: '#9e9e9e', // Gray for inactive
+    '&:hover': {
+      backgroundColor: '#757575', // Darker gray on hover
+    },
+  },
+  statusSuspended: {
+    backgroundColor: '#f44336', // Red for suspended
+    '&:hover': {
+      backgroundColor: '#d32f2f', // Darker red on hover
+    },
+  },
+
 }));
 
 const EmployeeTable = () => {
@@ -149,6 +188,11 @@ const EmployeeTable = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const handleStatusChange = (event) => {
+    setFilterStatus(event.target.value);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -164,13 +208,17 @@ const EmployeeTable = () => {
 
 
   useEffect(() => {
-    const filtered = employees.filter(employee =>
-      employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.department.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = employees.filter(employee => {
+      const matchesStatus = filterStatus === 'all' || employee.userStatus === parseInt(filterStatus, 10);
+      const matchesSearchTerm =
+        employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.department.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return matchesStatus && matchesSearchTerm;
+    });
     setFilteredEmployees(filtered);
-  }, [searchTerm, employees]);
+  }, [searchTerm, filterStatus, employees]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage - 1); // Adjust for zero-based page index
@@ -357,7 +405,6 @@ const EmployeeTable = () => {
             <Link to="/authentication/sign-up" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
-                color="primary"
                 className={classes.addButton}
                 startIcon={<Add />}
               >
@@ -365,8 +412,36 @@ const EmployeeTable = () => {
               </Button>
             </Link>
           </ArgonBox>
-          <ArgonBox className={classes.tableContainer}>
-            <ArgonBox className="search-input-container" mb={2}>
+          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+            <TextField
+              select
+              label="Filter Status"
+              value={filterStatus}
+              onChange={handleStatusChange}
+              variant="outlined"
+              sx={{
+                width: { xs: "100%", sm: "70%", md: "20%" },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.primary.main,
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.primary.dark,
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: theme => theme.palette.primary.dark,
+                  },
+                  '& .MuiInputBase-input': {
+                    width: '100% !important',
+                  },
+                },
+              }}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value={UserStatus.ACTIVE}>Active</MenuItem>
+              <MenuItem value={UserStatus.INACTIVE}>Inactive</MenuItem>
+              <MenuItem value={UserStatus.SUSPENDED}>Suspended</MenuItem>
+            </TextField>
               <TextField
                 variant="outlined"
                 placeholder="Search by Name"
@@ -380,24 +455,58 @@ const EmployeeTable = () => {
                   ),
                 }}
               />
-            </ArgonBox>
+          </ArgonBox>
+          <ArgonBox className={classes.tableContainer}>
+            {filteredEmployees.length === 0 ?(
+              <div style={{
+                textAlign: "center",
+                marginTop: "50px",
+                marginBottom: "20px",
+                padding: "30px",
+                backgroundColor: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                maxWidth: "700px",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}>
+                <Typography variant="h5" style={{ fontWeight: 600, color: "#333" }}>
+                  No employees
+                </Typography>
+                <Typography variant="body1" style={{ marginTop: "15px", color: "#666" }}>
+                  At this moment, there are no employees awaiting your review.
+                </Typography>
+                <Typography variant="body2" style={{ marginTop: "10px", color: "#999" }}>
+                  You can always add new employee or update existing ones through the provided forms.
+                </Typography>
+                <Link to="/authentication/sign-up" style={{ textDecoration: "none" }}>
+                  <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px" }}>
+                    Add New Employee
+                  </Button>
+                </Link>
+
+              </div>
+
+            ):(
+              <>
             {isMobile ? (
-                filteredEmployees.map(employee => (
-                  <Card key={employee.id} variant="outlined" sx={{ margin: 2, borderRadius: 2, boxShadow: 2, borderColor: '#e0e0e0' }}>
-                    <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="h5" component="div" sx={{ fontWeight: '600', color: '#333' }}>
-                        {employee.firstName} {employee.lastName}
-                      </Typography>
-                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
-                        <strong>Email:</strong> {employee.email}
-                      </Typography>
-                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
-                        <strong>Role:</strong> {getRoleName(employee.role)}
-                      </Typography>
-                      <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
-                        <strong>Department:</strong> {employee.department}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: getStatusColor(employee.userStatus), fontWeight: '500' }}>
+              filteredEmployees.map(employee => (
+                <Card key={employee.id} variant="outlined"
+                      sx={{ margin: 2, borderRadius: 2, boxShadow: 2, borderColor: "#e0e0e0" }}>
+                  <CardContent sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: "600", color: "#333" }}>
+                      {employee.firstName} {employee.lastName}
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                      <strong>Email:</strong> {employee.email}
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                      <strong>Role:</strong> {getRoleName(employee.role)}
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ marginBottom: 0.5 }}>
+                      <strong>Department:</strong> {employee.department}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: getStatusColor(employee.userStatus), fontWeight: "500" }}>
                         <strong>Status:</strong> {getStatusName(employee.userStatus)}
                       </Typography>
                       <div style={{ marginTop: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -428,13 +537,19 @@ const EmployeeTable = () => {
                 </thead>
                 <tbody>
                 {filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(employee => (
-                  <tr key={employee.id} >
+                  <tr key={employee.id}>
                     <td>{employee.firstName} {employee.lastName}</td>
                     <td>{employee.email}</td>
-                    <td style={{textAlign:'center'}}>{getRoleName(employee.role)}</td>
-                    <td style={{textAlign:'center'}}>{employee.department}</td>
-                    <td style={{textAlign:'center', color: getStatusColor(employee.userStatus) }}>{getStatusName(employee.userStatus)}</td>
-                    <td style={{textAlign:'center'}}>
+                    <td style={{ textAlign: "center" }}>{getRoleName(employee.role)}</td>
+                    <td style={{ textAlign: "center" }}>{employee.department}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        className={`${classes.statusCell} ${employee.userStatus === UserStatus.ACTIVE ? classes.statusActive : employee.userStatus === UserStatus.SUSPENDED ? classes.statusSuspended : classes.statusInactive}`}
+                      >
+                        {getStatusName(employee.userStatus)}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
                       <IconButton onClick={() => handleViewDetails(employee)}>
                         <Visibility />
                       </IconButton>
@@ -450,44 +565,20 @@ const EmployeeTable = () => {
                 </tbody>
               </Table>
             </TableContainer>
-          )}
+            )}
             <Pagination
               className={classes.pagination}
               count={Math.ceil(filteredEmployees.length / rowsPerPage)}
               page={page + 1}
               onChange={handleChangePage}
             />
-          </ArgonBox>
-        </Card>
-      </ArgonBox>
+              </>
+            )}
+             </ArgonBox>
 
-      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
-        <DialogTitle className={classes.dialogTitle} style={{ color: "white"  }}>Employee Details</DialogTitle>
-        <DialogContent className={classes.dialogContent}>
-          {selectedEmployee && (
-            <Box>
-              <Typography variant="h6" style={{ textAlign: "center" }}>{selectedEmployee.firstName} {selectedEmployee.lastName} </Typography>
-              <List>
-                <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                  <ListItemText primary="Email" secondary={selectedEmployee.email} />
-                </ListItem>
-                <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                  <ListItemText primary="Position" secondary={selectedEmployee.role} />
-                </ListItem>
-                <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                  <ListItemText primary="Department" secondary={selectedEmployee.department} />
-                </ListItem>
-                <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                  <ListItemText primary="phneNumber" secondary={`${selectedEmployee.phneNumber} years`} />
-                </ListItem>
-              </List>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">Close</Button>
-        </DialogActions>
-      </Dialog>
+           </Card>
+          </ArgonBox>
+
 
       <Card className={classes.employeeMetrics} elevation={5}>
         <Box p={4} display="flex" flexDirection="column" gap={3} borderRadius={2} bgcolor="#f9f9f9">

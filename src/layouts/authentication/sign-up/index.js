@@ -469,8 +469,8 @@ function Cover() {
                       onBlur={handleBlur}
                       sx={{
                         display: 'flex',
-                        flexDirection: 'row', // Align items in a row
-                        gap: 2, // Add space between the radio buttons
+                        flexDirection: 'row',
+                        gap: 2,
                       }}
                     >
                       <FormControlLabel value="0" control={<Radio />} label="Male" />
@@ -508,7 +508,7 @@ function Cover() {
                         },
                       }}
                       InputLabelProps={{ shrink: true }}
-                      inputProps={{ max: today }} // Restrict selectable date to today and before
+                      inputProps={{ max: today }}
                     />
                     {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
                   </FormControl>

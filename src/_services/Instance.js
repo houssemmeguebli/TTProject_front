@@ -17,4 +17,20 @@ instance.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+instance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      console.log(`Response status: ${error.response.status}`);
+      console.log(`Response data:`, error.response.data);
+      if (error.response.status === 429) {
+        alert('Rate limit exceeded. Please try again later.');
+      }
+    } else {
+      console.error('Response error without status code:', error);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;

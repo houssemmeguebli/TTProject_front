@@ -30,6 +30,7 @@ import List from "@mui/material/List";
 import ProjectManagerService from "../../_services/ProjectManagerService";
 import clsx from "clsx";
 import { blue, red } from "@mui/material/colors";
+import MenuItem from "@mui/material/MenuItem";
 
 const requestService = new RequestService();
 const UserService = new ProjectManagerService();
@@ -172,15 +173,17 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     marginTop: theme.spacing(2),
 
+
   },
-  addButton: {
-    marginBottom: theme.spacing(2),
-    color: '#ffffff',
-    backgroundColor: theme.palette.primary.main,
-    '&:hover': {
-      backgroundColor: '#303f9f',
-    },
+    addButton: {
+      marginBottom: theme.spacing(2),
+      color: '#ffffff',
+      backgroundColor: '#1976d2',
+      '&:hover': {
+        backgroundColor: '#303f9f',
+      },
   },
+
   importantNotes: {
     marginTop: theme.spacing(3),
     padding: theme.spacing(2),
@@ -190,7 +193,6 @@ const useStyles = makeStyles((theme) => ({
   summarySection: {
     marginTop: theme.spacing(3),
     padding: theme.spacing(2),
-    //backgroundColor: theme.palette.grey[200],
     borderRadius: '8px',
     borderColor:'black'
   },
@@ -201,12 +203,16 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     textAlign: 'center',
   },
+  filterContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: theme.spacing(2),
+  },
 }));
 
 const Status = {
   0: 'Pending',
   1: 'Approved',
-  2: 'Updated',
   3: 'Rejected',
 };
 
@@ -222,6 +228,7 @@ const Index = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
 
 
   useEffect(() => {
@@ -285,6 +292,7 @@ const Index = () => {
   >
     <CircularProgress />
   </Box>;
+
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -354,12 +362,21 @@ const Index = () => {
     setSearchQuery(event.target.value);
   };
 
-  const filteredRequests = requestsData.filter(request => {
+
+  const filteredRequests = requestsData.filter((request) => {
     const userName = userMap[request.userId]?.toLowerCase() || '';
-    return userName.includes(searchQuery.toLowerCase());
+
+    // Filter by status if a status filter is applied
+    const statusMatches = filterStatus === 'all' || Status[request.status] === filterStatus;
+
+    // Filter by name if a search query is present
+    const nameMatches = userName.includes(searchQuery.toLowerCase());
+
+    return statusMatches && nameMatches;
   });
 
   const currentRequests = filteredRequests.slice(indexOfFirstRequest, indexOfLastRequest);
+
   const getBusinessDaysCount = (startDate, endDate) => {
     let count = 0;
     const currentDate = new Date(startDate);
@@ -374,6 +391,11 @@ const Index = () => {
 
     return count;
   };
+
+  const handleStatusChange = (event) => {
+    setFilterStatus(event.target.value);
+  };
+
 
   return (
 
@@ -390,16 +412,78 @@ const Index = () => {
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
             <ArgonTypography variant="h6" fontWeight="medium" >Table of Requests</ArgonTypography>
+
             <Link to="/add" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
+                color="primary"
                 className={classes.addButton}
                 startIcon={<Add />}
               >
                 New Request
               </Button>
             </Link>
+
           </ArgonBox>
+      <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+          <TextField
+            select
+            label="Filter Status"
+            value={filterStatus}
+            onChange={handleStatusChange}
+            variant="outlined"
+            sx={{
+              width: { xs: "100%", sm: "70%", md: "20%" },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: theme => theme.palette.primary.main,
+                },
+                '&:hover fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme => theme.palette.primary.dark,
+                },
+                '& .MuiInputBase-input': {
+                  width: '100% !important',
+                },
+              },
+            }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            {Object.keys(Status).map((key) => (
+              <MenuItem key={key} value={Status[key]}>
+                {Status[key]}
+              </MenuItem>
+            ))}
+          </TextField>
+            <TextField
+              variant="outlined"
+              placeholder="Search by Name"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon style={{ color: '#1976d2' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                  transition: 'border-color 0.3s, box-shadow 0.3s',
+                  '&:hover fieldset': {
+                    borderColor: '#1976d2',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1976d2',
+                    boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
+                  },
+                },
+              }}
+            />
+      </ArgonBox>
           {currentRequests.length === 0 ? (
             <div style={{
               textAlign: "center",
@@ -413,10 +497,10 @@ const Index = () => {
               marginRight: "auto"
             }}>
               <Typography variant="h5" style={{ fontWeight: 600, color: "#333" }}>
-                No Pending Requests
+                No  Requests
               </Typography>
               <Typography variant="body1" style={{ marginTop: "15px", color: "#666" }}>
-                At this moment, there are no pending requests awaiting your review.
+                At this moment, there are no  requests awaiting your review.
                 Please check back periodically for new requests.
               </Typography>
               <Typography variant="body2" style={{ marginTop: "10px", color: "#999" }}>
@@ -428,37 +512,10 @@ const Index = () => {
               </Button>
               </Link>
             </div>
+
           ) : (
             <>
           <ArgonBox className={classes.tableContainer}>
-            <ArgonBox className="search-input-container" mb={2}>
-              <TextField
-                variant="outlined"
-                placeholder="Search by  Name"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon style={{ color: '#1976d2' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '20px',
-                    transition: 'border-color 0.3s, box-shadow 0.3s',
-                    '&:hover fieldset': {
-                      borderColor: '#1976d2',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#1976d2',
-                      boxShadow: '0 0 5px rgba(25, 118, 210, 0.5)',
-                    },
-                  },
-                }}
-              />
-            </ArgonBox>
             {isMobile ? (
               currentRequests.map(request => (
                 <Card key={request.requestId} className={classes.card}>

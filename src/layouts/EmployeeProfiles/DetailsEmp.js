@@ -11,7 +11,7 @@ import {
   Button,
   ListItemText,
   ListItem,
-  Select,
+  Select, FormHelperText, FormControl,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Link, useParams } from "react-router-dom";
@@ -137,8 +137,12 @@ const DetailsEmp = () => {
   const [employee, setEmployee] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState();
   const [editing, setEditing] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -149,6 +153,60 @@ const DetailsEmp = () => {
     position: '',
     dateOfbirth: '',
   });
+  const today = new Date().toISOString().split('T')[0];
+  const validateField = (name, value) => {
+    let error = "";
+    if (name === "firstName" || name === "lastName" || name === "department" || name === "position") {
+      if (!value) {
+        error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+      } else if (value.length > 30) {
+        error = `${name.charAt(0).toUpperCase() + name.slice(1)} must be under 30 characters`;
+      }
+    } else if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!value) {
+        error = "Email is required";
+      } else if (!emailRegex.test(value)) {
+        error = "Invalid email format";
+      }
+    } else if (name === "phoneNumber") {
+      const phoneNumberRegex = /^\d{8}$/;
+      if (!value) {
+        error = "Phone is required";
+      } else if (!phoneNumberRegex.test(value)) {
+        error = "Phone number must be 8 digits";
+      }
+    }  else if (name === "dateOfbirth") {
+      if (!value) {
+        error = "Date of Birth is required";
+      }
+    }
+    return error;
+  };
+
+  const validateForm = (formValues) => {
+    const errors = {};
+    for (const [key, value] of Object.entries(formValues)) {
+      if (key !== "role") {
+        const error = validateField(key, value);
+        if (error) errors[key] = error;
+      }
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  useEffect(() => {
+    setIsFormValid(validateForm(formData));
+  }, [formData]);
+
+  const handleBlur = (event) => {
+    const { name } = event.target;
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+  };
 
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
@@ -194,12 +252,20 @@ const DetailsEmp = () => {
   }, [employeeId]);
 
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
   };
+
   console.log('FormData:', formData);
 
   const handleRoleChange = (e) => {
@@ -264,7 +330,14 @@ const DetailsEmp = () => {
     <CircularProgress />
   </Box>;
 
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (error) return <Box color="error"  sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    width: '100vw' ,
+    color:"red"
+  }}>{error}</Box>;
 
   return (
     <DashboardLayout
@@ -322,6 +395,7 @@ const DetailsEmp = () => {
           <Grid container spacing={2}>
 
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
               <TextField
                 label="First Name"
                 name="firstName"
@@ -329,6 +403,7 @@ const DetailsEmp = () => {
                 fullWidth
                 value={formData.firstName}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -350,8 +425,11 @@ const DetailsEmp = () => {
                   },
                 }}
               />
+                {errors.firstName && touched.firstName && <FormHelperText>{errors.firstName}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.lastName && touched.lastName} sx={{ mb: 2 }}>
               <TextField
                 label="Last Name"
                 name="lastName"
@@ -359,6 +437,7 @@ const DetailsEmp = () => {
                 fullWidth
                 value={formData.lastName}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -380,8 +459,11 @@ const DetailsEmp = () => {
                   },
                 }}
               />
+                {errors.lastName && touched.lastName && <FormHelperText>{errors.lastName}</FormHelperText>}
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.dateOfbirth && touched.dateOfbirth} sx={{ mb: 2 }}>
               <TextField
                 label="Date of Birth"
                 name="dateOfBirth"
@@ -389,10 +471,13 @@ const DetailsEmp = () => {
                 fullWidth
                 value={format(new Date(formData.dateOfbirth),  "yyyy-MM-dd")}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
+                maxDate={new Date(today)}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
                 type="date"
+                inputProps={{ max: today }}
                 sx={{
                   marginTop: 1,
                   '& .MuiOutlinedInput-root': {
@@ -411,11 +496,13 @@ const DetailsEmp = () => {
                   },
                 }}
               />
+                {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
+              </FormControl>
             </Grid>
-
             {connectedUser.role === "ProjectManager" && (
               <>
                 <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.phoneNumber && touched.phoneNumber} sx={{ mb: 2 }}>
                   <TextField
                     label="Phone Number"
                     name="phoneNumber"
@@ -423,6 +510,7 @@ const DetailsEmp = () => {
                     fullWidth
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
                     disabled={!editing}
                     className={classes.formControl}
                     InputLabelProps={{ shrink: true }}
@@ -444,9 +532,11 @@ const DetailsEmp = () => {
                       },
                     }}
                   />
+                    {errors.phoneNumber && touched.phoneNumber && <FormHelperText>{errors.phoneNumber}</FormHelperText>}
+                  </FormControl>
                 </Grid>
-
                 <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
                   <TextField
                     label="Email"
                     name="email"
@@ -454,6 +544,8 @@ const DetailsEmp = () => {
                     fullWidth
                     value={formData.email}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+
                     disabled={!editing}
                     className={classes.formControl}
                     InputLabelProps={{ shrink: true }}
@@ -475,16 +567,19 @@ const DetailsEmp = () => {
                       },
                     }}
                   />
+                  {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
+                </FormControl>
                 </Grid>
-
                 <Grid item xs={12} md={6}>
-              <TextField
+                  <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
+                  <TextField
                 label="Department"
                 name="department"
                 variant="outlined"
                 fullWidth
                 value={formData.department}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -506,8 +601,11 @@ const DetailsEmp = () => {
                   },
                 }}
               />
+                    {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
+                  </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.position && touched.position} sx={{ mb: 2 }}>
               <TextField
                 label="Position"
                 name="position"
@@ -515,6 +613,7 @@ const DetailsEmp = () => {
                 fullWidth
                 value={formData.position}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -536,14 +635,19 @@ const DetailsEmp = () => {
                   },
                 }}
               />
+              {errors.position && touched.position && <FormHelperText>{errors.position}</FormHelperText>}
+            </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.role && touched.role} sx={{ mb: 2 }}>
               <Select
                 label="Role"
                 name="role"
                 value={formData.role}
                 onChange={handleRoleChange}
                 disabled={!editing}
+                onBlur={handleBlur}
+
                 fullWidth
                 variant="outlined"
                 className={classes.formControl}
@@ -571,6 +675,8 @@ const DetailsEmp = () => {
                   </MenuItem>
                 ))}
               </Select>
+                {errors.role && touched.role && <FormHelperText>{errors.role}</FormHelperText>}
+              </FormControl>
             </Grid>
               </>
             )}
@@ -582,6 +688,8 @@ const DetailsEmp = () => {
                 <Button
                   variant="contained"
                   color="white"
+                  disabled={!isFormValid}
+
                   onClick={handleSave}
                   style={{ marginRight: 8 }}
                 >

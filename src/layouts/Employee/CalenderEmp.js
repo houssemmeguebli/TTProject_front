@@ -171,6 +171,7 @@ const CalendarEmp = () => {
 
   const approvedRequests = filteredEvents.filter(e => e.className.includes(classes.eventApproved)).length;
   const pendingRequests = filteredEvents.filter(e => e.className.includes(classes.eventPending)).length;
+  const rejectedRequests = filteredEvents.filter(e => e.className.includes(classes.eventRejected)).length;
 
   return (
     <DashboardLayout
@@ -249,14 +250,17 @@ const CalendarEmp = () => {
             <Typography variant="h6">Request Summary</Typography>
             <Grid container spacing={2}>
 
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Typography variant="body2">Total Requests: {filteredEvents.length}</Typography>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Typography variant="body2">Approved: {approvedRequests}</Typography>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <Typography variant="body2">Pending: {pendingRequests}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <Typography variant="body2">Rejected: {rejectedRequests}</Typography>
               </Grid>
             </Grid>
           </ArgonBox>
