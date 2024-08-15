@@ -229,7 +229,7 @@ const Empolyee = () => {
 
       if (result && Array.isArray(result.$values)) {
         setRequestsData(result.$values);
-        await fetchUsers(result.$values.map(request => request.userId));
+        await fetchUsers(result.$values.map(request => request.employeeId));
       } else {
         console.error('Expected an array of requests, received:', result);
       }
@@ -317,7 +317,7 @@ const Empolyee = () => {
   };
 
   const filteredRequests = requestsData.filter((request) => {
-    const userName = userMap[request.userId]?.toLowerCase() || '';
+    const userName = userMap[request.employeeId]?.toLowerCase() || '';
 
     // Filter by status if a status filter is applied
     const statusMatches = filterStatus === 'all' || Status[request.status] === filterStatus;
@@ -371,7 +371,9 @@ const Empolyee = () => {
       <ArgonBox py={3} className={classes.card}>
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <ArgonTypography variant="h6" fontWeight="medium">Table of Requests</ArgonTypography>
+            <Typography variant="h4" >
+              Requests Table
+            </Typography>
             <Link to="/AddRequestEmp" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
@@ -468,7 +470,7 @@ const Empolyee = () => {
                 <Card key={request.requestId} className={classes.card}>
                   <ArgonBox p={2}>
                     <Box className={classes.cardHeader}>
-                      <Typography variant="h6">{userMap[request.userId]}</Typography>
+                      <Typography variant="h6">{userMap[request.employeeId]}</Typography>
                       <Typography
                         className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
                       >
@@ -518,7 +520,7 @@ const Empolyee = () => {
               <tbody>
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
-                  <td>{userMap[request.userId]}</td>
+                  <td>{userMap[request.employeeId]}</td>
                   <td style={{ textAlign: "center" }}>
                     <span style={{ margin: "0 10px" }}>From</span>
                     <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
@@ -612,7 +614,7 @@ const Empolyee = () => {
               <ListItem className={classes.listItem} >
                 <ListItemText style={{ textAlign: "center" }}
                               primary="Employee Name"
-                              secondary={userMap[selectedRequest.userId]}
+                              secondary={userMap[selectedRequest.employeeId]}
                 />
               </ListItem >
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>

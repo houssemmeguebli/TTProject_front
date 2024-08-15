@@ -10,7 +10,7 @@ class EmployeeService {
     try {
       const response = await axios.get(`${this.baseUrl}/${employeeId}`);
       return response.data;
-      console.log(response.data);
+      console.log("Response test",response.data);
     } catch (error) {
       console.error('Error fetching employee by ID:', error);
       throw error;

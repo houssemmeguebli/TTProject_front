@@ -227,7 +227,7 @@ const DetailsManager = () => {
           phoneNumber: employeeData.phoneNumber,
           role: employeeData.role,
           department: employeeData.department || '',
-          projectName: employeeData.projectName || '',
+          projectName: employeeData.projectName ,
           dateOfbirth: employeeData.dateOfbirth || '',
           userStatus:employeeData.userStatus,
         });
@@ -389,7 +389,9 @@ const DetailsManager = () => {
           </Box>
 
           <Divider />
-          <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
+            Edit Profile Information
+          </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
@@ -726,20 +728,25 @@ const DetailsManager = () => {
           </Box>
         </Card>
 
-        {/* Statistics Section */}
+
         {/* Statistics Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle}>Statistics</Typography>
-          <Grid container spacing={2} className={classes.barChartContainer}>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
+            Statistics
+          </Typography>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6">Request Status Distribution</Typography>
-              <PieChart width={400} height={300}>
+              <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
+                Request Status Distribution
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                <PieChart width={Math.min(400, window.innerWidth * 0.9)} height={300}>
                 <Pie
                   data={pieChartData}
-                  cx={200}
-                  cy={150}
+                  cx="50%"
+                  cy="50%"
                   labelLine={false}
-                  outerRadius={100}
+                  outerRadius="80%"
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -749,38 +756,70 @@ const DetailsManager = () => {
                 </Pie>
                 <Tooltip />
               </PieChart>
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6">Request Count by Status</Typography>
-              <BarChart
-                width={400}
-                height={300}
-                data={pieChartData}
-                margin={{
-                  top: 5, right: 30, left: 20, bottom: 5,
-                }}
+              <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
+                Request Count by Status
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                  <BarChart
+                    width={Math.min(400, window.innerWidth * 0.9)}
+                    height={300}
+                    data={pieChartData}
+                    margin={{
+                    top: 20, right: 30, left: 20, bottom: 10,
+                  }}
               >
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#1976d2" />
+                <Bar dataKey="value" fill="#0088FE"  barSize={40}  />
               </BarChart>
+              </Box>
             </Grid>
           </Grid>
         </Card>
-
         {/* Recent Requests Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle}>Recent Requests</Typography>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
+            Recent Requests
+          </Typography>
           {requests.length > 0 ? (
-            <Box>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
               {requests.slice(0, 5).map(request => (
-                <ListItem key={request.id} className={classes.cuteListItem}>
-                  <Avatar alt={`Request ${request.requestId}`} src="/static/images/avatar/1.jpg" />
+                <ListItem
+                  key={request.id}
+                  className={classes.cuteListItem}
+                  sx={{
+                            p: 2,
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            '&:hover': {
+                              boxShadow: 3,
+                              backgroundColor: '#fafafa',
+                            },
+                          }}
+                >
+                  <Avatar
+                    alt={`Request ${request.requestId}`}
+                    src="/static/images/avatar/1.jpg"
+                    sx={{ width: 70, height: 70, mb: 2 }}
+                  />
                   <ListItemText
                     primary={`Request ID: ${request.requestId}`}
                     secondary={
-                      <Box className={classes.cuteListItemText}>
+                      <Box cclassName={classes.cuteListItemText} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography variant="body2"><strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}</Typography>
                         <Typography variant="body2"><strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}</Typography>
                         <Typography variant="body2"><strong>Comment:</strong> {request.comment || "No comment"}</Typography>
@@ -793,8 +832,8 @@ const DetailsManager = () => {
               ))}
             </Box>
           ) : (
-            <Box className={classes.noRequestsBox}>
-              <Typography>No requests found for this employee.</Typography>
+            <Box className={classes.noRequestsBox} sx={{ textAlign: 'center', p: 2 }}>
+              <Typography variant="body1">No requests found for this employee.</Typography>
             </Box>
           )}
         </Card>

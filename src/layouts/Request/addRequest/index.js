@@ -21,17 +21,21 @@ import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
 import EmailService from "../../../_services/EmailService";
+import AuthService from "../../../_services/AuthService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
+const authService=new AuthService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
-
+const currentUser =authService.getCurrentUser();
 const Index = ({ onSubmit }) => {
   const [request, setRequest] = useState({
     startDate: new Date(),
     endDate: new Date(),
     comment: '',
-    userId: '',
+    employeeId: '',
+    projectManagerId:currentUser?.id || '',
+
   });
 
   const [users, setUsers] = useState([]);
@@ -83,11 +87,11 @@ const Index = ({ onSubmit }) => {
 
     setRequest(prevRequest => ({
       ...prevRequest,
-      userId: selectedUserId,
+      employeeId: selectedUserId,
     }));
     setTouched(prevTouched => ({
       ...prevTouched,
-      userId: true,
+      employeeId: true,
     }));
 
     console.log('Selected user ID:', selectedUserId);
@@ -148,7 +152,7 @@ const Index = ({ onSubmit }) => {
     try {
       await requestService.createRequest(request, 0);
 
-      const selectedUser = users.find(user => user.id === request.userId);
+      const selectedUser = users.find(user => user.id === request.employeeId);
       const userEmail = selectedUser ? selectedUser.email : '';
       const userName= selectedUser? selectedUser.firstName:'';
       console.log("email", userEmail);
@@ -169,7 +173,8 @@ const Index = ({ onSubmit }) => {
         startDate: new Date(),
         endDate: new Date(),
         comment: '',
-        userId: '',
+        employeeId: '',
+        projectManagerId: currentUser?.id || '',
       });
 
       onSubmit();

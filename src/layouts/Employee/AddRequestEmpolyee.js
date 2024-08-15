@@ -36,7 +36,7 @@ const AddRequestEmp = ({ onSubmit }) => {
     startDate: new Date(),
     endDate: new Date(),
     comment: '',
-    userId: currentUser?.id || ''
+    employeeId: currentUser?.id || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -149,7 +149,7 @@ const AddRequestEmp = ({ onSubmit }) => {
         startDate: new Date(),
         endDate: new Date(),
         comment: '',
-        userId: currentUser?.id || ''
+        employeeId: currentUser?.id || ''
       });
       onSubmit();
       navigate('/RequestEmployee');

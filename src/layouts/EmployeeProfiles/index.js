@@ -401,7 +401,9 @@ const EmployeeTable = () => {
       <ArgonBox py={3} className={classes.card}>
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <ArgonTypography variant="h6" fontWeight="medium">List of Employees</ArgonTypography>
+            <Typography variant="h4">
+              Employees list
+            </Typography>
             <Link to="/authentication/sign-up" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"

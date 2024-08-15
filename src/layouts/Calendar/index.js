@@ -121,7 +121,7 @@ const Calendar = () => {
         const result = await requestService.getAllRequests();
         if (result && Array.isArray(result.$values)) {
           const requestsData = result.$values;
-          const userIds = requestsData.map(req => req.userId);
+          const userIds = requestsData.map(req => req.employeeId);
 
           await fetchUsers(userIds);
 
@@ -131,7 +131,7 @@ const Calendar = () => {
             const businessDays = getBusinessDaysCount(startDate, endDate);
             const statusClass = getStatusClass(request.status);
             const statusType = getStatusType(request.status);
-            const user = userMap[request.userId] || {};
+            const user = userMap[request.employeeId] || {};
 
             return {
               title: `${user.firstName || 'Unknown'} ${user.lastName || 'User'} - ${statusType} (${businessDays} days)`,

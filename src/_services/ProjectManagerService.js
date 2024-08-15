@@ -42,6 +42,7 @@ class ProjectManagerService {
     try {
       const response = await axios.get(`${this.API_URL}/getByUserId/${userId}`);
       return response.data;
+      console.log("Response test :", response.data);
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       throw error;

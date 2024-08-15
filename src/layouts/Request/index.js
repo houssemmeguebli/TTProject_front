@@ -250,10 +250,11 @@ const Index = () => {
     try {
       const responses = await Promise.all(userIds.map(userId => UserService.getUserById(userId)));
       const users = responses.reduce((acc, data) => {
-        if (data && data.userId) {
-          acc[data.userId] = `${data.firstName} ${data.lastName}`;
+        const id = data.employeeId || data.userId;  // Check for employeeId first, fallback to userId
+        if (id) {
+          acc[id] = `${data.firstName} ${data.lastName}`;
         } else {
-          console.warn('No userId found in response:', data);
+          console.warn('No employeeId or userId found in response:', data);
         }
         return acc;
       }, {});
@@ -266,21 +267,33 @@ const Index = () => {
 
   const fetchRequests = async () => {
     try {
-
       const result = await requestService.getAllRequests();
 
       if (result && Array.isArray(result.$values)) {
+        console.log('Requests:', result.$values); // Log the requests
+
+        // Extract userIds (employeeIds) and projectManagerIds, filter out undefined/null values
+        const userIds = result.$values.map(request => request.employeeId).filter(id => id !== undefined && id !== null);
+        const managerIds = result.$values.map(request => request.projectManagerId).filter(id => id !== undefined && id !== null);
+
+        // Combine both arrays into a single array of unique IDs
+        const combinedIds = Array.from(new Set([...userIds, ...managerIds]));
+
+        // Fetch user details for all unique IDs
+        await fetchUsers(combinedIds);
+
         setRequestsData(result.$values);
-        await fetchUsers(result.$values.map(request => request.userId));
       } else {
         console.error('Expected an array of requests, received:', result);
       }
     } catch (error) {
       console.error('Error fetching requests:', error);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
+
+
   if (loading) return <Box
     sx={{
       display: 'flex',
@@ -364,7 +377,7 @@ const Index = () => {
 
 
   const filteredRequests = requestsData.filter((request) => {
-    const userName = userMap[request.userId]?.toLowerCase() || '';
+    const userName = userMap[request.employeeId]?.toLowerCase() || '';
 
     // Filter by status if a status filter is applied
     const statusMatches = filterStatus === 'all' || Status[request.status] === filterStatus;
@@ -411,7 +424,9 @@ const Index = () => {
       <ArgonBox py={3} className={classes.card}>
         <Card>
           <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <ArgonTypography variant="h6" fontWeight="medium" >Table of Requests</ArgonTypography>
+            <Typography variant="h4" >
+              Requests Table
+            </Typography>
 
             <Link to="/add" style={{ textDecoration: 'none' }}>
               <Button
@@ -521,7 +536,7 @@ const Index = () => {
                 <Card key={request.requestId} className={classes.card}>
                   <ArgonBox p={2}>
                     <Box className={classes.cardHeader}>
-                      <Typography variant="h6">{userMap[request.userId]}</Typography>
+                      <Typography variant="h6">{userMap[request.employeeId]}</Typography>
                       <Typography
                         className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
                       >
@@ -529,6 +544,7 @@ const Index = () => {
                       </Typography>
                     </Box>
                     <Box className={classes.cardContent}>
+                      <Typography variant="body1">{`Treated by: ${userMap[request.projectManagerId]||"Not treated yet"}`}</Typography>
                       <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
                       <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
                       <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
@@ -568,6 +584,7 @@ const Index = () => {
               <thead>
               <tr>
                 <th>Employee Name</th>
+                <th>Treated by</th>
                 <th style={{ textAlign: "center" }}>Period</th>
                 <th style={{ textAlign: "center" }}>Days</th>
                 <th style={{ textAlign: "center" }}>Status</th>
@@ -577,7 +594,8 @@ const Index = () => {
               <tbody>
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
-                  <td>{userMap[request.userId]}</td>
+                  <td>{userMap[request.employeeId]}</td>
+                  <td>{userMap[request.projectManagerId]||"Not treated yet"}</td>
                   <td style={{ textAlign: "center" ,  }}>
                     <span style={{ margin: "0 10px", }}>From</span>
                     <span style={{fontWeight: "bold"}}>{format(new Date(request.startDate), 'dd-MM-yyyy')}</span>
@@ -710,7 +728,7 @@ const Index = () => {
               <ListItem className={classes.listItem} >
                 <ListItemText style={{ textAlign: "center" }}
                   primary="Employee Name"
-                  secondary={userMap[selectedRequest.userId]}
+                  secondary={userMap[selectedRequest.employeeId]}
                 />
               </ListItem >
               <ListItem className={classes.listItem} style={{ textAlign: "center" }}>

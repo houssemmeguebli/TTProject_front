@@ -375,6 +375,7 @@ const DetailsEmp = () => {
               width={{ xs: '100%', md: 'auto' }}
             >
               <Typography variant="h4" fontSize={{ xs: '1.5rem', md: '2rem' }}>
+
                 {`${employee?.firstName} ${employee?.lastName}`}
               </Typography>
               <Typography variant="body1" color="textSecondary">
@@ -391,7 +392,9 @@ const DetailsEmp = () => {
           </Box>
 
           <Divider />
-          <Typography variant="h6" className={classes.sectionTitle}>Edit Profile Information</Typography>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
+            Edit Profile Information
+          </Typography>
           <Grid container spacing={2}>
 
             <Grid item xs={12} md={6}>
@@ -737,15 +740,15 @@ const DetailsEmp = () => {
 
         {/* Statistics Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle} gutterBottom>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
             Statistics
           </Typography>
-          <Grid container spacing={3} className={classes.barChartContainer}>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
                 Request Status Distribution
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                 <PieChart width={Math.min(400, window.innerWidth * 0.9)} height={300}>
                   <Pie
                     data={pieChartData}
@@ -765,76 +768,72 @@ const DetailsEmp = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
                 Request Count by Status
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                 <BarChart
                   width={Math.min(400, window.innerWidth * 0.9)}
                   height={300}
                   data={pieChartData}
                   margin={{
-                    top: 5, right: 30, left: 20, bottom: 5,
+                    top: 20, right: 30, left: 20, bottom: 10,
                   }}
                 >
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                    <Bar  dataKey="value" fill="#0088FE"/>
+                  <Bar dataKey="value" fill="#0088FE" barSize={40} />
                 </BarChart>
               </Box>
             </Grid>
           </Grid>
         </Card>
-
         {/* Recent Requests Section */}
         <Card className={classes.card}>
-          <Typography variant="h4" className={classes.sectionTitle} gutterBottom>
+          <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
             Recent Requests
           </Typography>
           {requests.length > 0 ? (
-            <Box>
-              {requests.slice(0, 5).map(request => (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              {requests.map((request) => (
                 <ListItem
                   key={request.id}
                   className={classes.cuteListItem}
                   sx={{
-                    mb: 2,
                     p: 2,
                     border: '1px solid #ddd',
                     borderRadius: '8px',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    flexDirection: { xs: 'column', sm: 'row' },
+                    textAlign: 'center',
                     '&:hover': {
-                      boxShadow: 2,
-                      backgroundColor: '#f5f5f5'
-                    }
+                      boxShadow: 3,
+                      backgroundColor: '#fafafa',
+                    },
                   }}
                 >
                   <Avatar
                     alt={`Request ${request.requestId}`}
                     src="/static/images/avatar/1.jpg"
-                    sx={{ width: { xs: 50, sm: 70 }, height: { xs: 50, sm: 70 }, mr: { sm: 2 }, mb: { xs: 2, sm: 0 } }}
+                    sx={{ width: 70, height: 70, mb: 2 }}
                   />
                   <ListItemText
+                    primary={`Request ID: ${request.requestId}`}
                     secondary={
-                      <Box className={classes.cuteListItemText} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Comment:</strong> {request.comment || "No comment"}
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Note:</strong> {request.note || "No notes"}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Status:</strong> {Status[request.status]}
-                        </Typography>
+                      <Box cclassName={classes.cuteListItemText} sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2"><strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}</Typography>
+                        <Typography variant="body2"><strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}</Typography>
+                        <Typography variant="body2"><strong>Comment:</strong> {request.comment || "No comment"}</Typography>
+                        <Typography variant="body2"><strong>Note:</strong> {request.note || "No notes"}</Typography>
+                        <Typography variant="body2"><strong>Status:</strong> {Status[request.status]}</Typography>
                       </Box>
                     }
                   />

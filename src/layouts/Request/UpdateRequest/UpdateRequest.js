@@ -22,12 +22,15 @@ import EmployeeService from "../../../_services/EmployeeService";
 import EmailService from "../../../_services/EmailService";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
+import AuthService from "../../../_services/AuthService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
+const authService=new AuthService();
+
 const bgImage =
   'https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg';
-
+const currentUser =authService.getCurrentUser();
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
@@ -99,6 +102,7 @@ const UpdateRequest = () => {
     startDate: new Date(),
     endDate: new Date(),
     note: '',
+    projectManagerId: currentUser.id ||'' ,
   });
   const today = new Date().toISOString().split('T')[0];
 
@@ -119,13 +123,14 @@ const UpdateRequest = () => {
           startDate: new Date(response.startDate),
           endDate: new Date(response.endDate),
           note: response.note || '',
+          projectManagerId: currentUser.id ||'',
         });
         setOriginalRequest({
           ...response,
           startDate: new Date(response.startDate),
           endDate: new Date(response.endDate),
         });
-        const employeeData = await employeeService.getEmployeeById(response.userId);
+        const employeeData = await employeeService.getEmployeeById(response.employeeId);
         setEmployee(employeeData);
       } catch (error) {
         console.error('Error fetching request:', error);
