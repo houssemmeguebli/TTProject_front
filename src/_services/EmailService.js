@@ -133,7 +133,7 @@ class EmailService {
   }
 
   async sendRequestEmail(toEmail, requestDetails) {
-    const { startDate, endDate, comment, userName } = requestDetails;
+    const { startDate, endDate, note, userName } = requestDetails;
 
     const htmlContent = `
      <!DOCTYPE html>
@@ -208,7 +208,7 @@ class EmailService {
             <div class="details">
                 <p><strong>Start Date:</strong> ${new Date(startDate).toDateString()}</p>
                 <p><strong>End Date:</strong> ${new Date(endDate).toDateString()}</p>
-                <p><strong>Comment:</strong> ${comment}</p>
+                <p><strong>Manager Note:</strong> ${note}</p>
             </div>
             <p>Keep up the great work!</p>
             

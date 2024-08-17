@@ -246,7 +246,7 @@ const AddRequestEmp = ({ onSubmit }) => {
               </Grid>
               <Grid item xs={12}>
                 <FormControl fullWidth error={!!(errors.comment && touched.comment)} sx={{ marginBottom: 2 }}>
-                  <Typography className="label">Comment</Typography>
+                  <Typography className="label">Employee comment</Typography>
                   <TextField
                     id="comment"
                     name="comment"

@@ -10,8 +10,9 @@ function item(theme, ownerState) {
 
   return {
     background: active
-      ? rgba(palette[sidenavColor ?? "info"].main, sidenavColor ? 1 : 0.1)
-      : transparent.main,
+      ? rgba(palette[sidenavColor ?? "primary"].main, sidenavColor ? 1 : 0.1)
+
+        : transparent.main,
     color: () => {
       let result = text.main;
 

@@ -341,7 +341,7 @@ const UpdateRequestEmp = () => {
               {errors.endDate && touched.endDate && <FormHelperText>{errors.endDate}</FormHelperText>}
             </FormControl>
             <FormControl fullWidth error={!!(errors.comment && touched.comment)}>
-              <Typography className={classes.label}>Comment</Typography>
+              <Typography className={classes.label}>Employee comment</Typography>
               <TextField
                 name="comment"
                 multiline

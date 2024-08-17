@@ -14,15 +14,15 @@ import {
   Card,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
-import RequestService from '../../../_services/RequestService';
-import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from '../../../examples/Navbars/DashboardNavbar';
+import RequestService from '../../../../_services/RequestService';
+import DashboardLayout from '../../../../examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from '../../../../examples/Navbars/DashboardNavbar';
 import Swal from "sweetalert2";
-import EmployeeService from "../../../_services/EmployeeService";
-import EmailService from "../../../_services/EmailService";
+import EmployeeService from "../../../../_services/EmployeeService";
+import EmailService from "../../../../_services/EmailService";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
-import AuthService from "../../../_services/AuthService";
+import AuthService from "../../../../_services/AuthService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
@@ -331,12 +331,13 @@ const UpdateRequest = () => {
                 {statuses.map((status) => (
                   <MenuItem key={status.value} value={status.value}>
                     {status.label}
+
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
             <FormControl fullWidth>
-              <Typography className={classes.label}>Note</Typography>
+              <Typography className={classes.label}>Manager note</Typography>
               <TextField
                 name="note"
                 multiline

@@ -1,14 +1,14 @@
-import Profile from "layouts/profile";
+import Profile from "layouts/ProjectManager/ManagerProfile";
 import ArgonBox from "components/ArgonBox";
 import React from "react";
-import Calendar from "./layouts/Calendar";
-import Request from "./layouts/Request";
+import Calendar from "./layouts/ProjectManager/Calendar";
+import Request from "./layouts/ProjectManager/Request";
 import PeopleIcon from '@mui/icons-material/People';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AuthService from "./_services/AuthService";
-import EmployeeProfiles from "./layouts/EmployeeProfiles";
+import EmployeeProfiles from "./layouts/ProjectManager/EmployeeProfiles";
 import Empolyee from "./layouts/Employee";
-import DetailsEmp from "./layouts/EmployeeProfiles/DetailsEmp";
+import DetailsEmp from "./layouts/ProjectManager/EmployeeProfiles/DetailsEmp";
 import CalendarEmp from "./layouts/Employee/CalenderEmp";
 import { Logout } from "@mui/icons-material";
 
@@ -44,24 +44,28 @@ const routes = [
   },
   {
     type: "route",
-    name: "List of Requests",
+    name: "Requests Table",
     key: "Requests",
     route: "/Requests",
     icon: (
-      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-paper-diploma" />
+      <ArgonBox component="i" color="primary" fontSize="14px" className="material-icons">
+        table_chart
+      </ArgonBox>
     ),
     component: <Request />,
     roles: ["ProjectManager"],
-
   },
+
+
   {
     type: "route",
-    name: "List of Requests",
+    name: "Requests Table",
     key: "RequestEmployee",
     route: "/RequestEmployee",
     icon: (
-      <ArgonBox component="i" color="primary" fontSize="14px" className="ni ni-paper-diploma" />
-    ),
+      <ArgonBox component="i" color="primary" fontSize="14px" className="material-icons">
+        table_chart
+      </ArgonBox>    ),
     component: <Empolyee />,
     roles: ["Employee"],
 

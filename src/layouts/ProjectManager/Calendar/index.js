@@ -6,12 +6,12 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { Container, Paper, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Card } from "@mui/material";
 import { format, parseISO } from "date-fns";
 import { makeStyles } from '@mui/styles';
-import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
-import ArgonBox from "../../components/ArgonBox";
-import Footer from "../../examples/Footer";
-import ProjectManagerService from "../../_services/ProjectManagerService";
-import RequestService from "../../_services/RequestService";
+import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import ArgonBox from "../../../components/ArgonBox";
+import Footer from "../../../examples/Footer";
+import ProjectManagerService from "../../../_services/ProjectManagerService";
+import RequestService from "../../../_services/RequestService";
 
 const requestService = new RequestService();
 const userService = new ProjectManagerService();
@@ -46,12 +46,16 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
     borderRadius: '8px',
     boxShadow: theme.shadows[5],
+
+
   },
   calendar: {
     borderRadius: '8px',
     border: `1px solid ${theme.palette.divider}`,
     backgroundColor: theme.palette.background.default,
     boxShadow: theme.shadows[2],
+    overflow: 'auto', // Ensure scrolling is allowed
+    maxHeight: 'calc(100vh - 200px)', // Adjust height to fit within the viewport
   },
   eventPending: {
     backgroundColor: '#ffaa3b !important',
@@ -74,6 +78,7 @@ const useStyles = makeStyles((theme) => ({
     borderStyle: 'solid',
     padding: '2px',
   },
+
 }));
 
 const getBusinessDaysCount = (startDate, endDate) => {
@@ -134,7 +139,7 @@ const Calendar = () => {
             const user = userMap[request.employeeId] || {};
 
             return {
-              title: `${user.firstName || 'Unknown'} ${user.lastName || 'User'} - ${statusType} (${businessDays} days)`,
+              title: `ID:${request.requestId}-${ user.firstName || 'Unknown'} ${user.lastName || 'User'} - ${statusType} (${businessDays} days)`,
               start: startDate.toISOString(),
               end: endDate.toISOString(),
               className: `${statusClass} ${classes.event}`,
@@ -193,7 +198,7 @@ const Calendar = () => {
       }}
     >
       <DashboardNavbar />
-      <Container sx={{ padding: { xs: 2, sm: 3, md: 4 } }}>
+      <Container sx={{ padding: 1 }}>
         <Card elevation={4} sx={{ padding: { xs: 2, sm: 3, md: 4 }, borderRadius: 2 }}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4}>
@@ -233,6 +238,9 @@ const Calendar = () => {
             <Grid item xs={12}>
               <div className={classes.calendarContainer}>
                 <FullCalendar
+                  sx={{
+                    fcEvent: 'none',
+                }}
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                   initialView="dayGridMonth"
                   events={filteredEvents}
@@ -247,6 +255,8 @@ const Calendar = () => {
                     }
                   }}
                   className={classes.calendar}
+                  height="auto"
+
                 />
               </div>
             </Grid>

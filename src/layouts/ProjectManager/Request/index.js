@@ -5,15 +5,26 @@ import {
   Container,
   Typography,
   Button,
-  Grid, TextField, InputAdornment, Box, Paper, CircularProgress,
+  Grid,
+  TextField,
+  InputAdornment,
+  Box,
+  Paper,
+  CircularProgress,
+  TableCell,
+  TableRow,
+  TableHead,
+  Table,
+  TableContainer,
+  TableBody,
 } from "@mui/material";
 import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
-import ArgonBox from '../../components/ArgonBox';
-import ArgonTypography from '../../components/ArgonTypography';
-import DashboardLayout from '../../examples/LayoutContainers/DashboardLayout';
-import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
-import Footer from '../../examples/Footer';
-import RequestService from '../../_services/RequestService';
+import ArgonBox from '../../../components/ArgonBox';
+import ArgonTypography from '../../../components/ArgonTypography';
+import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from '../../../examples/Navbars/DashboardNavbar';
+import Footer from '../../../examples/Footer';
+import RequestService from '../../../_services/RequestService';
 import { makeStyles } from '@mui/styles';
 import Pagination from '@mui/material/Pagination';
 import { Link, useNavigate } from 'react-router-dom';
@@ -27,7 +38,7 @@ import DialogActions from '@mui/material/DialogActions';
 import ListItemText from "@mui/material/ListItemText";
 import ListItem from "@mui/material/ListItem";
 import List from "@mui/material/List";
-import ProjectManagerService from "../../_services/ProjectManagerService";
+import ProjectManagerService from "../../../_services/ProjectManagerService";
 import clsx from "clsx";
 import { blue, red } from "@mui/material/colors";
 import MenuItem from "@mui/material/MenuItem";
@@ -544,6 +555,7 @@ const Index = () => {
                       </Typography>
                     </Box>
                     <Box className={classes.cardContent}>
+                      <Typography variant="body1">{`Request ID: ${request.requestId}`}</Typography>
                       <Typography variant="body1">{`Treated by: ${userMap[request.projectManagerId]||"Not treated yet"}`}</Typography>
                       <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
                       <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
@@ -583,8 +595,9 @@ const Index = () => {
             <table>
               <thead>
               <tr>
-                <th>Employee Name</th>
-                <th>Treated by</th>
+                <th style={{ textAlign: "center" ,width:"5px" }}>ID</th>
+                <th style={{ textAlign: "center" }}>Employee Name</th>
+                <th style={{ textAlign: "center" }}>Treated by</th>
                 <th style={{ textAlign: "center" }}>Period</th>
                 <th style={{ textAlign: "center" }}>Days</th>
                 <th style={{ textAlign: "center" }}>Status</th>
@@ -594,13 +607,14 @@ const Index = () => {
               <tbody>
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
-                  <td>{userMap[request.employeeId]}</td>
-                  <td>{userMap[request.projectManagerId]||"Not treated yet"}</td>
-                  <td style={{ textAlign: "center" ,  }}>
-                    <span style={{ margin: "0 10px", }}>From</span>
-                    <span style={{fontWeight: "bold"}}>{format(new Date(request.startDate), 'dd-MM-yyyy')}</span>
+                  <td style={{ textAlign: "center" }}>{request.requestId}</td>
+                  <td style={{ textAlign: "center" }}>{userMap[request.employeeId]}</td>
+                  <td>{userMap[request.projectManagerId] || "Not treated yet"}</td>
+                  <td style={{ textAlign: "center" }}>
+                    <span style={{ margin: "0 10px" }}>From</span>
+                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
                     <span style={{ margin: "0 10px" }}>To</span>
-                    <span style={{fontWeight: "bold"}}>{format(new Date(request.endDate), 'dd-MM-yyyy')}</span>
+                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.endDate), "dd-MM-yyyy")}</span>
                   </td>
                   <td
                     style={{ textAlign: "center" }}>
@@ -720,66 +734,79 @@ const Index = () => {
         </Card>
 
       </ArgonBox>
-      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
-        <DialogTitle className={classes.dialogTitle} style={{ color: "white"  }}>Request Details</DialogTitle>
-        <DialogContent dividers >
+      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md">
+        <DialogTitle >Request Details</DialogTitle>
+        <DialogContent dividers>
           {selectedRequest && (
-            <List >
-              <ListItem className={classes.listItem} >
-                <ListItemText style={{ textAlign: "center" }}
-                  primary="Employee Name"
-                  secondary={userMap[selectedRequest.employeeId]}
-                />
-              </ListItem >
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Start Date"
-                  secondary={format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="End Date"
-                  secondary={format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Duration"
-                  secondary={`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate)) } days`}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Employee Comment"
-                  secondary={selectedRequest.comment || 'No comment'}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Update Reason"
-                  secondary={selectedRequest.note || 'No updates'}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Status"
-                  secondary={
-                    <Typography
-                      className={
-                        selectedRequest.status === 1 ? classes.approved : selectedRequest.status === 2 ? classes.rejected : ''
-                      }
-                    >
-                      {Status[selectedRequest.status]}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-            </List>
+            <TableContainer  className={classes.tableContainer}>
+              <Table>
+                <TableHead className={classes.tableHead}>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Employee Name</TableCell>
+                    <TableCell className={classes.tableCell}>{userMap[selectedRequest.employeeId]}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Request ID</TableCell>
+                    <TableCell className={classes.tableCell}>{selectedRequest.requestId}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Treated By</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {userMap[selectedRequest.projectManagerId] || 'Not treated yet'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Start Date</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>End Date</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Duration</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate))} days`}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Employee Comment</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {selectedRequest.comment || 'No comment'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Manager Note</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      {selectedRequest.note || 'No notes'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Status</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      <Typography
+                        className={
+                          selectedRequest.status === 1 ? classes.approved :
+                            selectedRequest.status === 2 ? classes.rejected : ''
+                        }
+                      >
+                        {Status[selectedRequest.status]}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">
+          <Button onClick={handleDialogClose} color="primary" variant="contained" >
             Close
           </Button>
         </DialogActions>

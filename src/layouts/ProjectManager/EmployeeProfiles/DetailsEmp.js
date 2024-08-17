@@ -15,19 +15,18 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Link, useParams } from "react-router-dom";
-import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
-import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
-import EmployeeService from "../../_services/EmployeeService";
-import AuthService from "../../_services/AuthService";
+import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
+import EmployeeService from "../../../_services/EmployeeService";
+import AuthService from "../../../_services/AuthService";
 import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import Swal from "sweetalert2";
 import MenuItem from "@mui/material/MenuItem";
-import ProjectManagerService from "../../_services/ProjectManagerService";
 
 const employeeService = new EmployeeService();
 const authService = new AuthService();
-const managerService=new ProjectManagerService();
+const connectedUser = authService.getCurrentUser();
 const bgImage =
   "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
@@ -66,10 +65,6 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '8px',
     padding: theme.spacing(2),
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    flexDirection: 'column',
-    [theme.breakpoints.up('md')]: {
-      flexDirection: 'row',
-    },
   },
   profileAvatar: {
     width: 120,
@@ -118,7 +113,12 @@ const useStyles = makeStyles((theme) => ({
     border: `1px solid ${theme.palette.divider}`,
   },
 }));
+/*
+const handleChangePasswordClick = () => {
+  navigate(`/change-password/${connectedUser.id}`);
+};
 
+ */
 const role = {
   0: 'Project Manager',
   1: 'Employee',
@@ -131,35 +131,32 @@ const Status = {
   3: 'Rejected',
 };
 
-const DetailsManager = () => {
+const DetailsEmp = () => {
   const classes = useStyles();
   const { employeeId } = useParams();
   const [employee, setEmployee] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState();
   const [editing, setEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
-  const [formData, setFormData] = useState({
 
+  const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phoneNumber: '',
     role: '',
     department: '',
-    projectName: '',
+    position: '',
     dateOfbirth: '',
-
   });
-  const currentUser = authService.getCurrentUser();
-  const userid = currentUser.id;
   const today = new Date().toISOString().split('T')[0];
   const validateField = (name, value) => {
     let error = "";
-    if (name === "firstName" || name === "lastName" || name === "department" || name === "projectName") {
+    if (name === "firstName" || name === "lastName" || name === "department" || name === "position") {
       if (!value) {
         error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
       } else if (value.length > 30) {
@@ -210,15 +207,17 @@ const DetailsManager = () => {
       [name]: true,
     }));
   };
+
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
       try {
-
-
+        const currentUser = authService.getCurrentUser();
+        const userid = currentUser.id;
+        console.log("role connected : ",currentUser.role)
         let employeeData, requestData;
 
         // Fetch employee details using EmployeeService
-        employeeData = await managerService.getUserWithId(employeeId || userid);
+        employeeData = await employeeService.getEmployeeById(employeeId || userid);
         setEmployee(employeeData);
         setFormData({
           firstName: employeeData.firstName,
@@ -227,19 +226,19 @@ const DetailsManager = () => {
           phoneNumber: employeeData.phoneNumber,
           role: employeeData.role,
           department: employeeData.department || '',
-          projectName: employeeData.projectName ,
+          position: employeeData.position || '',
           dateOfbirth: employeeData.dateOfbirth || '',
           userStatus:employeeData.userStatus,
         });
 
+        // Fetch requests by employee ID
         try {
-          requestData = await managerService.getRequestsByManagerId(userid);
+          requestData = await employeeService.getRequestsByEmployeeId(employeeId || userid);
           setRequests(requestData.$values || []);
         } catch (requestError) {
           console.warn('Error fetching requests:', requestError);
           setRequests([]); // Set requests to empty array if there's an error
         }
-
 
       } catch (error) {
         setError('Failed to fetch employee details');
@@ -251,7 +250,6 @@ const DetailsManager = () => {
 
     fetchEmployeeDetails();
   }, [employeeId]);
-
 
 
   const handleInputChange = (event) => {
@@ -267,6 +265,7 @@ const DetailsManager = () => {
       [name]: validateField(name, value),
     }));
   };
+
   console.log('FormData:', formData);
 
   const handleRoleChange = (e) => {
@@ -279,22 +278,23 @@ const DetailsManager = () => {
   const handleSave = async () => {
     try {
       console.log('Saving data:', formData);
-      await managerService.updateProjectManager(userid, formData);
+      await employeeService.updateEmployee(employeeId, formData);
       setEditing(false); // Exit editing mode
-      Swal.fire("Success!", "Employee details updated successfully!", "success").then(() => {
-        window.location.reload();
-      });
-
-
+      Swal.fire("Success!", "Employee details updated successfully!", "success");
 
     } catch (error) {
       console.error('Error updating employee details:', error);
-      console.error('Response data:', error.response?.data); // Log response data
-      console.error('Response status:', error.response?.status); // Log response status
-      console.error('Response headers:', error.response?.headers); // Log response headers
       Swal.fire("Error!", "Failed to update employee details. Please try again.", "error");
+
     }
   };
+
+  const statusColors = {
+    'Approved': '#4caf50', // Green
+    'Rejected': '#f44336', // Red
+    'Pending': '#ff9800',  // Orange
+  };
+
 
   const calculateStatistics = () => {
     const totalRequests = requests.length;
@@ -329,12 +329,13 @@ const DetailsManager = () => {
   >
     <CircularProgress />
   </Box>;
+
   if (error) return <Box color="error"  sx={{
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     height: '100vh',
-    width: '100vw',
+    width: '100vw' ,
     color:"red"
   }}>{error}</Box>;
 
@@ -374,6 +375,7 @@ const DetailsManager = () => {
               width={{ xs: '100%', md: 'auto' }}
             >
               <Typography variant="h4" fontSize={{ xs: '1.5rem', md: '2rem' }}>
+
                 {`${employee?.firstName} ${employee?.lastName}`}
               </Typography>
               <Typography variant="body1" color="textSecondary">
@@ -386,6 +388,7 @@ const DetailsManager = () => {
                 <strong>Role:</strong> {role[employee?.role]}
               </Typography>
             </Box>
+
           </Box>
 
           <Divider />
@@ -393,9 +396,9 @@ const DetailsManager = () => {
             Edit Profile Information
           </Typography>
           <Grid container spacing={2}>
+
             <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.firstName && touched.firstName} sx={{ mb: 2 }}>
-
               <TextField
                 label="First Name"
                 name="firstName"
@@ -404,7 +407,6 @@ const DetailsManager = () => {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
-
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -431,7 +433,6 @@ const DetailsManager = () => {
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.lastName && touched.lastName} sx={{ mb: 2 }}>
-
               <TextField
                 label="Last Name"
                 name="lastName"
@@ -440,7 +441,6 @@ const DetailsManager = () => {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
-
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -466,94 +466,21 @@ const DetailsManager = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
-
-              <TextField
-                label="Email"
-                name="email"
-                variant="outlined"
-                fullWidth
-                value={formData.email}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-
-                disabled={!editing}
-                className={classes.formControl}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  marginTop: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
-              />
-                {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.dateOfbirth && touched.dateOfbirth} sx={{ mb: 2 }}>
               <TextField
                 label="Date of Birth"
                 name="dateOfBirth"
                 variant="outlined"
                 fullWidth
-                onBlur={handleBlur}
                 value={format(new Date(formData.dateOfbirth),  "yyyy-MM-dd")}
                 onChange={handleInputChange}
-                disabled={!editing}
-                className={classes.formControl}
-                InputLabelProps={{ shrink: true }}
-                maxDate={new Date(today)}
-                inputProps={{ max: today }}
-
-                type="date"
-                sx={{
-                  marginTop: 1,
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: theme => theme.palette.primary.main,
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme => theme.palette.primary.dark,
-                    },
-                    '& .MuiInputBase-input': {
-                      width: '100% !important',
-                    },
-                  },
-                }}
-              />
-              {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
-            </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.phoneNumber && touched.phoneNumber} sx={{ mb: 2 }}>
-
-              <TextField
-                label="Phone Number"
-                name="phoneNumber"
-                variant="outlined"
-                fullWidth
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
                 onBlur={handleBlur}
-
                 disabled={!editing}
+                maxDate={new Date(today)}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
+                type="date"
+                inputProps={{ max: today }}
                 sx={{
                   marginTop: 1,
                   '& .MuiOutlinedInput-root': {
@@ -572,12 +499,83 @@ const DetailsManager = () => {
                   },
                 }}
               />
-                {errors.phoneNumber && touched.phoneNumber && <FormHelperText>{errors.phoneNumber}</FormHelperText>}
+                {errors.dateOfbirth && touched.dateOfbirth && <FormHelperText>{errors.dateOfbirth}</FormHelperText>}
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
-              <TextField
+            {connectedUser.role === "ProjectManager" && (
+              <>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.phoneNumber && touched.phoneNumber} sx={{ mb: 2 }}>
+                  <TextField
+                    label="Phone Number"
+                    name="phoneNumber"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    disabled={!editing}
+                    className={classes.formControl}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      marginTop: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme => theme.palette.primary.main,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '& .MuiInputBase-input': {
+                          width: '100% !important',
+                        },
+                      },
+                    }}
+                  />
+                    {errors.phoneNumber && touched.phoneNumber && <FormHelperText>{errors.phoneNumber}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.email && touched.email} sx={{ mb: 2 }}>
+                  <TextField
+                    label="Email"
+                    name="email"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+
+                    disabled={!editing}
+                    className={classes.formControl}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      marginTop: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme => theme.palette.primary.main,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: theme => theme.palette.primary.dark,
+                        },
+                        '& .MuiInputBase-input': {
+                          width: '100% !important',
+                        },
+                      },
+                    }}
+                  />
+                  {errors.email && touched.email && <FormHelperText>{errors.email}</FormHelperText>}
+                </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.department && touched.department} sx={{ mb: 2 }}>
+                  <TextField
                 label="Department"
                 name="department"
                 variant="outlined"
@@ -585,7 +583,6 @@ const DetailsManager = () => {
                 value={formData.department}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
-
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -607,19 +604,19 @@ const DetailsManager = () => {
                   },
                 }}
               />
-                {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
-              </FormControl>
+                    {errors.department && touched.department && <FormHelperText>{errors.department}</FormHelperText>}
+                  </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.projectName && touched.projectName} sx={{ mb: 2 }}>
+              <FormControl fullWidth error={!!errors.position && touched.position} sx={{ mb: 2 }}>
               <TextField
-                label="Project Name"
-                name="projectName"
+                label="Position"
+                name="position"
                 variant="outlined"
                 fullWidth
-                value={formData.projectName}
-                onBlur={handleBlur}
+                value={formData.position}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 disabled={!editing}
                 className={classes.formControl}
                 InputLabelProps={{ shrink: true }}
@@ -641,16 +638,19 @@ const DetailsManager = () => {
                   },
                 }}
               />
-              {errors.projectName && touched.projectName && <FormHelperText>{errors.projectName}</FormHelperText>}
+              {errors.position && touched.position && <FormHelperText>{errors.position}</FormHelperText>}
             </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.role && touched.role} sx={{ mb: 2 }}>
               <Select
                 label="Role"
                 name="role"
                 value={formData.role}
                 onChange={handleRoleChange}
                 disabled={!editing}
+                onBlur={handleBlur}
+
                 fullWidth
                 variant="outlined"
                 className={classes.formControl}
@@ -678,16 +678,22 @@ const DetailsManager = () => {
                   </MenuItem>
                 ))}
               </Select>
+                {errors.role && touched.role && <FormHelperText>{errors.role}</FormHelperText>}
+              </FormControl>
             </Grid>
+              </>
+            )}
           </Grid>
+
           <Box mt={2}>
             {editing ? (
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
                   color="white"
-                  onClick={handleSave}
                   disabled={!isFormValid}
+
+                  onClick={handleSave}
                   style={{ marginRight: 8 }}
                 >
                   Save
@@ -702,20 +708,22 @@ const DetailsManager = () => {
               </Box>
             ) : (
               <Box display="flex" justifyContent="flex-end" gap={2}>
-                <Button
-                  component={Link}
-                  to={`/change-Managerpassword/${employee.id}`}
-                  variant="contained"
-                  color="white"
-                  sx={{
-                    textTransform: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  Change Password
-                </Button>
+                {connectedUser.role === "Employee" && (
+                  <Button
+                    component={Link}
+                    to={`/change-Employeepassword/${employee.id}`}
+                    variant="contained"
+                    color="white"
+                    sx={{
+                      textTransform: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Change Password
+                  </Button>
+                )}
                 <Button
                   variant="contained"
                   color="white"
@@ -724,10 +732,11 @@ const DetailsManager = () => {
                   Edit
                 </Button>
               </Box>
+
             )}
+
           </Box>
         </Card>
-
 
         {/* Statistics Section */}
         <Card className={classes.card}>
@@ -741,21 +750,21 @@ const DetailsManager = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                 <PieChart width={Math.min(400, window.innerWidth * 0.9)} height={300}>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius="80%"
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius="80%"
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -763,25 +772,37 @@ const DetailsManager = () => {
                 Request Count by Status
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-                  <BarChart
-                    width={Math.min(400, window.innerWidth * 0.9)}
-                    height={300}
-                    data={pieChartData}
-                    margin={{
+                <BarChart
+                  width={Math.min(400, window.innerWidth * 0.9)}
+                  height={300}
+                  data={pieChartData}
+                  margin={{
                     top: 20, right: 30, left: 20, bottom: 10,
                   }}
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#0088FE"  barSize={40}  />
-              </BarChart>
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis
+                    tickFormatter={(value) => `${value}`} // Convert value to string to avoid commas
+                  />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#0088FE" barSize={40} />
+                </BarChart>
+
               </Box>
             </Grid>
           </Grid>
         </Card>
         {/* Recent Requests Section */}
-        <Card className={classes.card}>
+        <Card
+          className={classes.card}
+          sx={{
+            p: { xs: 2, sm: 3 },
+            boxShadow: 2,
+            borderRadius: '16px',
+            borderColor: '#1976d2',
+
+          }}
+        >
           <Typography variant="h4" sx={{ marginBottom: 3, fontWeight: 'bold' }}>
             Recent Requests
           </Typography>
@@ -789,42 +810,80 @@ const DetailsManager = () => {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
-                gap: 2,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(1, 1fr)',
+                  md: 'repeat(2, 1fr)',
+                  lg: 'repeat(4, 1fr)',
+                },
+                gap: 3,
+                width: '100%',
               }}
             >
-              {requests.slice(0, 5).map(request => (
+              {requests.map((request) => (
                 <ListItem
                   key={request.id}
                   className={classes.cuteListItem}
                   sx={{
-                            p: 2,
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            textAlign: 'center',
-                            '&:hover': {
-                              boxShadow: 3,
-                              backgroundColor: '#fafafa',
-                            },
-                          }}
+                    p: 3,
+                    border: '2px solid #ddd', // Bold border for more contrast
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    background: 'white', // White background for the cards
+                    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                    '&:hover': {
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.2)', // Larger shadow on hover
+                      transform: 'scale(1.05)', // Subtle scale on hover
+                      backgroundColor: '#e3f2fd', // Changes background color on hover
+                    },
+                  }}
                 >
                   <Avatar
                     alt={`Request ${request.requestId}`}
-                    src="/static/images/avatar/1.jpg"
-                    sx={{ width: 70, height: 70, mb: 2 }}
+                    sx={{
+                      width: { xs: 70, sm: 80, md: 90 },
+                      height: { xs: 70, sm: 80, md: 90 },
+                      mb: 2,
+                      border: '3px solid',
+                      borderColor: '#1976d2',
+                    }}
                   />
                   <ListItemText
-                    primary={`Request ID: ${request.requestId}`}
+                    primary={
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#1976d2',
+                        }}
+                      >
+                        Request ID: {request.requestId}
+                      </Typography>
+                    }
                     secondary={
-                      <Box cclassName={classes.cuteListItemText} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="body2"><strong>Start Date:</strong> {format(new Date(request.startDate), "dd-MM-yyyy")}</Typography>
-                        <Typography variant="body2"><strong>End Date:</strong> {format(new Date(request.endDate), "dd-MM-yyyy")}</Typography>
-                        <Typography variant="body2"><strong>Comment:</strong> {request.comment || "No comment"}</Typography>
-                        <Typography variant="body2"><strong>Note:</strong> {request.note || "No notes"}</Typography>
-                        <Typography variant="body2"><strong>Status:</strong> {Status[request.status]}</Typography>
+                      <Box
+                        className={classes.cuteListItemText}
+                        sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}
+                      >
+                        <Typography variant="body2">
+                          <strong style={{ color: '#1976d2' }}>Start Date:</strong> {format(new Date(request.startDate), 'dd-MM-yyyy')}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong  style={{ color: '#1976d2' }}>End Date:</strong> {format(new Date(request.endDate), 'dd-MM-yyyy')}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong  style={{ color: '#1976d2' }}>Employee comment:</strong> {request.comment || 'No comment'}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong  style={{ color: '#1976d2' }}>Manager note:</strong> {request.note || 'No notes'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}> {/* Red color for status */}
+                          <strong style={{ color: '#1976d2' }}>Status:</strong> {Status[request.status]}
+                        </Typography>
                       </Box>
                     }
                   />
@@ -832,7 +891,17 @@ const DetailsManager = () => {
               ))}
             </Box>
           ) : (
-            <Box className={classes.noRequestsBox} sx={{ textAlign: 'center', p: 2 }}>
+            <Box
+              className={classes.noRequestsBox}
+              sx={{
+                textAlign: 'center',
+                p: 3,
+                borderRadius: '12px',
+                border: '1px solid #ddd',
+                backgroundColor: 'rgba(255, 235, 238, 0.7)', // Soft pink transparent background
+                color: '#d32f2f', // Red text color for the empty state
+              }}
+            >
               <Typography variant="body1">No requests found for this employee.</Typography>
             </Box>
           )}
@@ -842,4 +911,4 @@ const DetailsManager = () => {
   );
 };
 
-export default DetailsManager;
+export default DetailsEmp;

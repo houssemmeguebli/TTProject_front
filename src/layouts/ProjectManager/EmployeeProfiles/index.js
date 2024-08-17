@@ -10,27 +10,22 @@ import {
   Button,
   InputAdornment,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions, CardContent, CircularProgress,
+   CardContent,
+  CircularProgress,
 } from "@mui/material";
-import EmployeeService from '../../_services/EmployeeService';
-import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
-import DashboardLayout from "../../examples/LayoutContainers/DashboardLayout";
+import EmployeeService from '../../../_services/EmployeeService';
+import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import { makeStyles } from "@mui/styles";
-import ArgonBox from "../../components/ArgonBox";
-import ArgonTypography from "../../components/ArgonTypography";
+import ArgonBox from "../../../components/ArgonBox";
 import { Link, useNavigate } from "react-router-dom";
-import { Add, Delete, Edit, Visibility, Warning } from "@mui/icons-material";
+import { Add, Visibility, Warning } from "@mui/icons-material";
 import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
-import Footer from "../../examples/Footer";
+import Footer from "../../../examples/Footer";
 import Swal from "sweetalert2";
 import MenuItem from "@mui/material/MenuItem";
+import EmployeeStatistics from "./EmployeesStatistics";
 
 const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
@@ -583,39 +578,10 @@ const EmployeeTable = () => {
 
 
       <Card className={classes.employeeMetrics} elevation={5}>
-        <Box p={4} display="flex" flexDirection="column" gap={3} borderRadius={2} bgcolor="#f9f9f9">
-          {/* Title */}
-          <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
-            Employee Statistics
-          </Typography>
-
-          {/* Total Employees */}
-          <Box display="flex" flexDirection="column" alignItems="center" bgcolor="#fff" p={3} borderRadius={2} boxShadow={2}>
-            <Typography variant="h6" color="textSecondary">
-              Total Employees
-            </Typography>
-            <Typography variant="h2" fontWeight="bold" color="primary">
-              {employees.length}
-            </Typography>
-          </Box>
-
-          {/* Department Distribution */}
-          <Typography variant="h6" fontWeight="medium" color="textPrimary" gutterBottom>
-            Department Distribution
-          </Typography>
-          <List>
-            {Object.entries(departmentDistribution).map(([department, count]) => (
-              <ListItem key={department} sx={{ borderBottom: '1px solid #ddd', borderRadius: 1, bgcolor: '#fafafa', '&:last-child': { borderBottom: 'none' } }}>
-                <ListItemText
-                  primary={department}
-                  secondary={`${count} employee(s)`}
-                  primaryTypographyProps={{ variant: 'body1', fontWeight: 'medium' }}
-                  secondaryTypographyProps={{ variant: 'body2', color: 'textSecondary' }}
-                />
-              </ListItem>
-            ))}
-          </List>
+        <Box p={4}>
+          <EmployeeStatistics employees={employees} />
         </Box>
+
       </Card>
 
       <Footer />

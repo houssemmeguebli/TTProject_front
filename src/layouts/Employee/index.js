@@ -21,7 +21,13 @@ import {
   Card,
   Typography,
   Box,
-  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress, Divider,
 } from "@mui/material";
 import {  format, parseISO } from "date-fns";
 import Dialog from "@mui/material/Dialog";
@@ -471,6 +477,7 @@ const Empolyee = () => {
                   <ArgonBox p={2}>
                     <Box className={classes.cardHeader}>
                       <Typography variant="h6">{userMap[request.employeeId]}</Typography>
+
                       <Typography
                         className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
                       >
@@ -478,6 +485,7 @@ const Empolyee = () => {
                       </Typography>
                     </Box>
                     <Box className={classes.cardContent}>
+                      <Typography variant="body1">{`Request ID: ${request.requestId}`}</Typography>
                       <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
                       <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
                       <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
@@ -510,7 +518,8 @@ const Empolyee = () => {
             <table>
               <thead>
               <tr>
-                <th>Employee</th>
+                <th style={{ textAlign: "center" }}>ID</th>
+                <th style={{ textAlign: "center" }}>Employee</th>
                 <th style={{ textAlign: "center" }}>Period</th>
                 <th style={{ textAlign: "center" }}>Days</th>
                 <th style={{ textAlign: "center" }}>Status</th>
@@ -520,7 +529,8 @@ const Empolyee = () => {
               <tbody>
               {currentRequests.map((request) => (
                 <tr key={request.requestId}>
-                  <td>{userMap[request.employeeId]}</td>
+                  <td style={{ textAlign: "center" }} >{request.requestId}</td>
+                  <td style={{ textAlign: "center" }}>{userMap[request.employeeId]}</td>
                   <td style={{ textAlign: "center" }}>
                     <span style={{ margin: "0 10px" }}>From</span>
                     <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
@@ -606,73 +616,67 @@ const Empolyee = () => {
         </Card>
       </ArgonBox>
       <Footer />
-      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md" >
-        <DialogTitle className={classes.dialogTitle} style={{ color: "white" }}>Request Details</DialogTitle>
-        <DialogContent dividers >
+      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md">
+        <DialogTitle className={classes.dialogTitle}>Request Details</DialogTitle>
+        <DialogContent>
           {selectedRequest && (
-            <List >
-              <ListItem className={classes.listItem} >
-                <ListItemText style={{ textAlign: "center" }}
-                              primary="Employee Name"
-                              secondary={userMap[selectedRequest.employeeId]}
-                />
-              </ListItem >
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Start Date"
-                  secondary={format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="End Date"
-                  secondary={format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Duration"
-                  secondary={`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate)) } days`}
-                />
-              </ListItem>
-
-
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Employee Comment"
-                  secondary={selectedRequest.comment || 'No comment'}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Update Reason"
-                  secondary={selectedRequest.note || 'No updates'}
-                />
-              </ListItem>
-              <ListItem className={classes.listItem} style={{ textAlign: "center" }}>
-                <ListItemText
-                  primary="Status"
-                  secondary={
-                    <Typography
-                      className={
-                        selectedRequest.status === 1 ? classes.approved : selectedRequest.status === 2 ? classes.rejected : ''
-                      }
-                    >
-                      {Status[selectedRequest.status]}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-            </List>
+            <TableContainer  className={classes.tableContainer}>
+              <Table>
+                <TableHead>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Request ID</TableCell>
+                    <TableCell className={classes.tableCell}>{selectedRequest.requestId}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Employee Name</TableCell>
+                    <TableCell className={classes.tableCell}>{userMap[selectedRequest.employeeId]}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Start Date</TableCell>
+                    <TableCell className={classes.tableCell}>{format(new Date(selectedRequest.startDate), 'dd-MM-yyyy')}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>End Date</TableCell>
+                    <TableCell className={classes.tableCell}>{format(new Date(selectedRequest.endDate), 'dd-MM-yyyy')}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Duration</TableCell>
+                    <TableCell className={classes.tableCell}>{`${getBusinessDaysCount(parseISO(selectedRequest.startDate), parseISO(selectedRequest.endDate))} days`}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Employee Comment</TableCell>
+                    <TableCell className={classes.tableCell}>{selectedRequest.comment || 'No comment'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Manager Note</TableCell>
+                    <TableCell className={classes.tableCell}>{selectedRequest.note || 'No note'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.tableCell}>Status</TableCell>
+                    <TableCell className={classes.tableCell}>
+                      <Typography
+                        className={
+                          selectedRequest.status === 1 ? classes.approved :
+                            selectedRequest.status === 2 ? classes.rejected : ''
+                        }
+                      >
+                        {Status[selectedRequest.status]}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">
+          <Button onClick={handleDialogClose} color="primary" variant="contained" className={classes.button}>
             Close
           </Button>
         </DialogActions>
       </Dialog>
-
     </DashboardLayout>
   );
 };

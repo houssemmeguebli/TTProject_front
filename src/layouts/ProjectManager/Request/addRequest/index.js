@@ -13,15 +13,15 @@ import {
   Box, CircularProgress, Card,
 } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-import RequestService from "../../../_services/RequestService";
-import EmployeeService from "../../../_services/EmployeeService";
-import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
+import RequestService from "../../../../_services/RequestService";
+import EmployeeService from "../../../../_services/EmployeeService";
+import DashboardLayout from "../../../../examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "../../../../examples/Navbars/DashboardNavbar";
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
-import EmailService from "../../../_services/EmailService";
-import AuthService from "../../../_services/AuthService";
+import EmailService from "../../../../_services/EmailService";
+import AuthService from "../../../../_services/AuthService";
 
 const requestService = new RequestService();
 const employeeService = new EmployeeService();
@@ -32,7 +32,8 @@ const Index = ({ onSubmit }) => {
   const [request, setRequest] = useState({
     startDate: new Date(),
     endDate: new Date(),
-    comment: '',
+    comment:'',
+    note:'',
     employeeId: '',
     projectManagerId:currentUser?.id || '',
 
@@ -120,8 +121,8 @@ const Index = ({ onSubmit }) => {
     return new Date(endDate) >= new Date(startDate);
   };
 
-  const validateComment = (comment) => {
-    return comment.length >= 10 && comment.length <= 100;
+  const validateNote = (note) => {
+    return note.length >= 10 && note.length <= 100;
   };
 
   const validateForm = (formValues) => {
@@ -134,8 +135,8 @@ const Index = ({ onSubmit }) => {
     } else if (!validateDates()) {
       errors.endDate = 'End date must be after start date';
     }
-    if (!validateComment(formValues.comment)) {
-      errors.comment = 'Comment must be between 10 and 100 characters';
+    if (!validateNote(formValues.note)) {
+      errors.note = 'note must be between 10 and 100 characters';
     }
     setErrors(errors);
     return Object.keys(errors).length === 0;
@@ -161,7 +162,7 @@ const Index = ({ onSubmit }) => {
         userName: userName,
         startDate: request.startDate,
         endDate: request.endDate,
-        comment: request.comment,
+        note: request.note,
       });
 
       Swal.fire({
@@ -172,7 +173,8 @@ const Index = ({ onSubmit }) => {
       setRequest({
         startDate: new Date(),
         endDate: new Date(),
-        comment: '',
+        comment:'',
+        note: '',
         employeeId: '',
         projectManagerId: currentUser?.id || '',
       });
@@ -266,12 +268,12 @@ const Index = ({ onSubmit }) => {
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
-                <FormControl fullWidth error={!!(errors.comment && touched.comment)} sx={{ mb: 2 }}>
-                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Comment</Typography>
+                <FormControl fullWidth error={!!(errors.note && touched.note)} sx={{ mb: 2 }}>
+                  <Typography className="label" variant="subtitle1" sx={{ mb: 1 }}>Manager note</Typography>
                   <TextField
-                    name="comment"
+                    name="note"
                     type="text"
-                    value={request.comment}
+                    value={request.note}
                     onChange={handleChange}
                     fullWidth
                     required
@@ -295,7 +297,7 @@ const Index = ({ onSubmit }) => {
                       },
                     }}
                   />
-                  {errors.comment && touched.comment && <FormHelperText>{errors.comment}</FormHelperText>}
+                  {errors.note && touched.note && <FormHelperText>{errors.note}</FormHelperText>}
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
@@ -340,7 +342,7 @@ const Index = ({ onSubmit }) => {
                   variant="contained"
                   color="primary"
                   sx={{ minWidth: 150 }}
-                  disabled={loading}
+                  disabled={loading ||!isFormValid}
                 >
                   {loading ? <CircularProgress size={24} /> : 'Submit'}
                 </Button>
