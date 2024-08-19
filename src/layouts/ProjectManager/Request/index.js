@@ -18,7 +18,7 @@ import {
   TableContainer,
   TableBody,
 } from "@mui/material";
-import { Add, Delete, Edit, Visibility } from "@mui/icons-material";
+import { Add, Delete, Edit, PictureAsPdf, Visibility } from "@mui/icons-material";
 import ArgonBox from '../../../components/ArgonBox';
 import ArgonTypography from '../../../components/ArgonTypography';
 import DashboardLayout from '../../../examples/LayoutContainers/DashboardLayout';
@@ -42,7 +42,8 @@ import ProjectManagerService from "../../../_services/ProjectManagerService";
 import clsx from "clsx";
 import { blue, red } from "@mui/material/colors";
 import MenuItem from "@mui/material/MenuItem";
-
+import jsPDF from "jspdf";
+import 'jspdf-autotable';
 const requestService = new RequestService();
 const UserService = new ProjectManagerService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
@@ -419,6 +420,77 @@ const Index = () => {
   const handleStatusChange = (event) => {
     setFilterStatus(event.target.value);
   };
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Requests Report", 14, 25);
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${format(new Date(), "dd-MM-yyyy")}`, 14, 35);
+
+    // Add a horizontal line below the header
+    doc.setLineWidth(0.5);
+    doc.line(14, 40, 196, 40);
+
+    const tableColumn = [
+      "Request ID", "Employee Name", "Treated By",
+      "Start Date", "End Date", "Duration",
+      "Employee Comment", "Manager Note", "Status"
+    ];
+    const tableRows = [];
+
+    // Data collection for the table
+    let totalDuration = 0;
+    requestsData.forEach(request => {
+      const startDate = parseISO(request.startDate);
+      const endDate = parseISO(request.endDate);
+      const duration = getBusinessDaysCount(startDate, endDate);
+
+      const requestData = [
+        request.requestId,
+        userMap[request.employeeId] || "N/A",
+        userMap[request.projectManagerId] || "N/A",
+        format(startDate, "dd-MM-yyyy"),
+        format(endDate, "dd-MM-yyyy"),
+        duration,
+        request.note || "N/A",
+        request.comment || "N/A",
+        Status[request.status],
+      ];
+
+      tableRows.push(requestData);
+      totalDuration += duration; // Calculating total duration
+    });
+
+    // Table with custom styles
+    doc.autoTable({
+      startY: 50, // Starting point
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid', // Styling theme for the table
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [0, 57, 107], textColor: [255, 255, 255] }, // Custom header color
+      alternateRowStyles: { fillColor: [240, 240, 240] }, // Alternating row colors
+      margin: { top: 10 },
+    });
+
+    // Display total requests and total duration below the table
+    const finalY = doc.previousAutoTable.finalY + 10; // Get the position after the table
+    doc.setFontSize(12);
+    doc.text(`Total Requests: ${requestsData.length}`, 14, finalY);
+
+    // Add a footer with page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10, { align: 'right' });
+    }
+
+    // Convert the document to a Blob and open in a new tab
+    const pdfBlob = doc.output('blob');
+    const blobURL = URL.createObjectURL(pdfBlob);
+    window.open(blobURL);
+  };
 
 
   return (
@@ -433,56 +505,93 @@ const Index = () => {
       <DashboardNavbar />
 
       <ArgonBox py={3} className={classes.card}>
+
         <Card>
-          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <Typography variant="h4" >
+          <ArgonBox
+            display="flex"
+            flexDirection={{ xs: 'column', sm: 'row' }} // Stack vertically on small screens, row on larger screens
+            justifyContent="space-between"
+            alignItems="center"
+            p={3}
+          >
+            {/* Title on the left */}
+            <Typography variant="h4" sx={{ mb: { xs: 2, sm: 0 } }}>
               Requests Table
             </Typography>
 
-            <Link to="/add" style={{ textDecoration: 'none' }}>
+            {/* Buttons on the right */}
+            <Box
+              display="flex"
+              flexDirection={{ xs: 'column', sm: 'row' }} // Stack vertically on small screens, row on larger screens
+              gap={2}
+              justifyContent="flex-end"
+              alignItems="center"
+
+
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
               <Button
                 variant="contained"
                 color="primary"
+                startIcon={<PictureAsPdf />}
                 className={classes.addButton}
-                startIcon={<Add />}
+                onClick={generatePDF}
+                sx={{
+                  width: { xs: "100%", sm: "auto" }, // Full width on small screens, auto on larger
+                }}
               >
-                New Request
+                Export PDF
               </Button>
-            </Link>
+              <Link to="/add" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Add />}
+                  className={classes.addButton}
 
+                  sx={{
+                    width: { xs: "100%", sm: "auto" }, // Full width on small screens, auto on larger
+                  }}
+                >
+                  New Request
+                </Button>
+              </Link>
+            </Box>
           </ArgonBox>
-      <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-          <TextField
-            select
-            label="Filter Status"
-            value={filterStatus}
-            onChange={handleStatusChange}
-            variant="outlined"
-            sx={{
-              width: { xs: "100%", sm: "70%", md: "20%" },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: theme => theme.palette.primary.main,
+          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+            <TextField
+              select
+              label="Filter Status"
+              value={filterStatus}
+              onChange={handleStatusChange}
+              variant="outlined"
+              sx={{
+                width: { xs: "100%", sm: "70%", md: "20%" },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme => theme.palette.primary.main,
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme => theme.palette.primary.dark,
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: theme => theme.palette.primary.dark,
+                  },
+                  '& .MuiInputBase-input': {
+                    width: '100% !important',
+                  },
                 },
-                '&:hover fieldset': {
-                  borderColor: theme => theme.palette.primary.dark,
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme => theme.palette.primary.dark,
-                },
-                '& .MuiInputBase-input': {
-                  width: '100% !important',
-                },
-              },
-            }}
-          >
-            <MenuItem value="all">All</MenuItem>
-            {Object.keys(Status).map((key) => (
-              <MenuItem key={key} value={Status[key]}>
-                {Status[key]}
-              </MenuItem>
-            ))}
-          </TextField>
+              }}
+            >
+              <MenuItem value="all">All</MenuItem>
+              {Object.keys(Status).map((key) => (
+                <MenuItem key={key} value={Status[key]}>
+                  {Status[key]}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               variant="outlined"
               placeholder="Search by Name"
@@ -509,7 +618,8 @@ const Index = () => {
                 },
               }}
             />
-      </ArgonBox>
+
+          </ArgonBox>
           {currentRequests.length === 0 ? (
             <div style={{
               textAlign: "center",
@@ -533,129 +643,133 @@ const Index = () => {
                 You can always add new requests or update existing ones through the provided forms.
               </Typography>
               <Link to="/add" style={{ textDecoration: 'none' }}>
-              <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px",   }}>
-                Add New Request
-              </Button>
+                <Button variant="contained" color="white" style={{ marginTop: "20px", borderRadius: "8px",   }}>
+                  Add New Request
+                </Button>
               </Link>
             </div>
 
           ) : (
             <>
-          <ArgonBox className={classes.tableContainer}>
-            {isMobile ? (
-              currentRequests.map(request => (
-                <Card key={request.requestId} className={classes.card}>
-                  <ArgonBox p={2}>
-                    <Box className={classes.cardHeader}>
-                      <Typography variant="h6">{userMap[request.employeeId]}</Typography>
-                      <Typography
-                        className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
-                      >
-                        {Status[request.status]}
-                      </Typography>
-                    </Box>
-                    <Box className={classes.cardContent}>
-                      <Typography variant="body1">{`Request ID: ${request.requestId}`}</Typography>
-                      <Typography variant="body1">{`Treated by: ${userMap[request.projectManagerId]||"Not treated yet"}`}</Typography>
-                      <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
-                      <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
-                      <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
-                      <Typography variant="body1">{`Comment: ${request.comment || "No comments"}`}</Typography>
-                    </Box>
-                    <Box className={classes.cardActions}>
-                      <IconButton
-                        className={classes.actionButton}
-                        color="primary"
-                        aria-label="view details"
-                        onClick={() => handleViewDetails(request)}
-                      >
-                        <Visibility />
-                      </IconButton>
-                      <IconButton
-                        className={classes.actionButton}
-                        color="secondary"
-                        aria-label="edit"
-                        onClick={() => handleUpdate(request.requestId)}
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        className={classes.actionButton}
-                        color="error"
-                        aria-label="delete"
-                        onClick={() => handleDelete(request.requestId)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Box>
-                  </ArgonBox>
-                </Card>
-              ))
-            ) : (
-            <table>
-              <thead>
-              <tr>
-                <th style={{ textAlign: "center" ,width:"5px" }}>ID</th>
-                <th style={{ textAlign: "center" }}>Employee Name</th>
-                <th style={{ textAlign: "center" }}>Treated by</th>
-                <th style={{ textAlign: "center" }}>Period</th>
-                <th style={{ textAlign: "center" }}>Days</th>
-                <th style={{ textAlign: "center" }}>Status</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              {currentRequests.map((request) => (
-                <tr key={request.requestId}>
-                  <td style={{ textAlign: "center" }}>{request.requestId}</td>
-                  <td style={{ textAlign: "center" }}>{userMap[request.employeeId]}</td>
-                  <td>{userMap[request.projectManagerId] || "Not treated yet"}</td>
-                  <td style={{ textAlign: "center" }}>
-                    <span style={{ margin: "0 10px" }}>From</span>
-                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
-                    <span style={{ margin: "0 10px" }}>To</span>
-                    <span style={{ fontWeight: "bold" }}>{format(new Date(request.endDate), "dd-MM-yyyy")}</span>
-                  </td>
-                  <td
-                    style={{ textAlign: "center" }}>
-                    {getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
+              <ArgonBox className={classes.tableContainer}>
+                {isMobile ? (
+                  currentRequests.map(request => (
+                    <Card key={request.requestId} className={classes.card}>
+                      <ArgonBox p={2}>
+                        <Box className={classes.cardHeader}>
+                          <Typography variant="h6">{userMap[request.employeeId]}</Typography>
+                          <Typography
+                            className={clsx(classes.statusCell, classes[`status${Status[request.status]}`])}
+                          >
+                            {Status[request.status]}
+                          </Typography>
+                        </Box>
+                        <Box className={classes.cardContent}>
+                          <Typography variant="body1">{`Request ID: ${request.requestId}`}</Typography>
+                          <Typography variant="body1">{`Treated by: ${userMap[request.projectManagerId]||"Not treated yet"}`}</Typography>
+                          <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
+                          <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
+                          <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
+                          <Typography variant="body1">{`Comment: ${request.comment || "No comments"}`}</Typography>
+                        </Box>
+                        <Box className={classes.cardActions}>
+                          <IconButton
+                            className={classes.actionButton}
+                            color="primary"
+                            aria-label="view details"
+                            onClick={() => handleViewDetails(request)}
+                          >
+                            <Visibility />
+                          </IconButton>
+                          <IconButton
+                            className={classes.actionButton}
+                            color="secondary"
+                            aria-label="edit"
+                            onClick={() => handleUpdate(request.requestId)}
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton
+                            className={classes.actionButton}
+                            color="error"
+                            aria-label="delete"
+                            onClick={() => handleDelete(request.requestId)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      </ArgonBox>
+                    </Card>
+                  ))
+                ) : (
+                  <table>
+                    <thead>
+                    <tr>
+                      <th style={{ textAlign: "center" ,width:"5px" }}>ID</th>
+                      <th style={{ textAlign: "center" }}>Employee Name</th>
+                      <th style={{ textAlign: "center" }}>Treated by</th>
+                      <th style={{ textAlign: "center" }}>Period</th>
+                      <th style={{ textAlign: "center" }}>Days</th>
+                      <th style={{ textAlign: "center" }}>Status</th>
+                      <th style={{ textAlign: "center" }}>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {currentRequests.map((request) => (
+                      <tr key={request.requestId}>
+                        <td style={{ textAlign: "center" }}>{request.requestId}</td>
+                        <td style={{ textAlign: "center" }}>{userMap[request.employeeId]}</td>
+                        <td style={{ textAlign: "center" }}>{userMap[request.projectManagerId] || "Not treated yet"}</td>
+                        <td style={{ textAlign: "center" }}>
+                          <span style={{ margin: "0 10px" }}>From</span>
+                          <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
+                          <span style={{ margin: "0 10px" }}>To</span>
+                          <span style={{ fontWeight: "bold" }}>{format(new Date(request.endDate), "dd-MM-yyyy")}</span>
+                        </td>
+                        <td
+                          style={{ textAlign: "center" }}>
+                          {getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}
+                        </td>
+                        <td style={{ textAlign: "center" }}>
                       <span
                         className={`${classes.statusCell} ${classes[`status${Status[request.status]}`]}`}
                       >
                         {Status[request.status]}
                       </span>
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <IconButton
-                      aria-label="View"
-                      onClick={() => handleViewDetails(request)}
-                    >
-                      <Visibility />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleUpdate(request.requestId)}
-                      color="primary"
-                      aria-label="Edit request"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(request.requestId)}
-                      color="secondary"
-                      aria-label="Delete request"
-                    >
-                      <Delete />
-                    </IconButton>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <IconButton
+                            aria-label="View"
+                            onClick={() => handleViewDetails(request)}
+                          >
+                            <Visibility />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleUpdate(request.requestId)}
+                            color="primary"
+                            aria-label="Edit request"
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleDelete(request.requestId)}
+                            color="secondary"
+                            aria-label="Delete request"
+                          >
+                            <Delete />
+                          </IconButton>
 
-                  </td>
-                </tr>
-              ))}
-              </tbody>
-            </table>
-              )}
-          </ArgonBox>
+                        </td>
+                      </tr>
+                    ))}
+                    </tbody>
+
+                  </table>
+
+
+                )}
+
+              </ArgonBox>
             </>
           )}
           <Container className={classes.pagination}>
@@ -665,6 +779,7 @@ const Index = () => {
               onChange={handlePageChange}
               color="primary"
             />
+
           </Container>
 
           <ArgonBox className={classes.summarySection}>
@@ -719,20 +834,19 @@ const Index = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Link to="/EmployeeProfiles" style={{ textDecoration: 'none' }}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  className={classes.quickLinkButton}
-                >
-                  Manage Users
-                </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    fullWidth
+                    className={classes.quickLinkButton}
+                  >
+                    Manage Users
+                  </Button>
                 </Link>
               </Grid>
             </Grid>
           </ArgonBox>
         </Card>
-
       </ArgonBox>
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="md">
         <DialogTitle >Request Details</DialogTitle>

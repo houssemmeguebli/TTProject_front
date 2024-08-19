@@ -19,14 +19,16 @@ import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout"
 import { makeStyles } from "@mui/styles";
 import ArgonBox from "../../../components/ArgonBox";
 import { Link, useNavigate } from "react-router-dom";
-import { Add, Visibility, Warning } from "@mui/icons-material";
+import { Add, PictureAsPdf, Visibility, Warning } from "@mui/icons-material";
 import Pagination from "@mui/material/Pagination";
 import SearchIcon from "@mui/icons-material/Search";
 import Footer from "../../../examples/Footer";
 import Swal from "sweetalert2";
 import MenuItem from "@mui/material/MenuItem";
 import EmployeeStatistics from "./EmployeesStatistics";
-
+import { format, parseISO } from "date-fns";
+import jsPDF from "jspdf";
+import 'jspdf-autotable';
 const employeeService = new EmployeeService();
 const bgImage = "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg";
 
@@ -381,7 +383,71 @@ const EmployeeTable = () => {
     <CircularProgress />
   </Box>;
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Employees Report", 14, 25);
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${format(new Date(), "dd-MM-yyyy")}`, 14, 35);
 
+    // Add a horizontal line below the header
+    doc.setLineWidth(0.5);
+    doc.line(14, 40, 196, 40);
+
+    const tableColumn = [
+       "Full Name", "Email","Phone" ,"Role","Position",
+      "Department","Date Of Birth" ,"Status"
+    ];
+    const tableRows = [];
+
+    // Data collection for the table
+    filteredEmployees.forEach(employee => {
+      const dateOfbirth = parseISO(employee.dateOfbirth);
+
+      const requestData = [
+        `${employee.firstName} ${employee.lastName}`,
+        employee.email,
+        employee.phoneNumber,
+        getRoleName(employee.role),
+        employee.position,
+        employee.department,
+        format(dateOfbirth, "dd-MM-yyyy"),
+        getStatusName(employee.userStatus)
+      ];
+
+      tableRows.push(requestData);
+    });
+
+    // Table with custom styles
+    doc.autoTable({
+      startY: 50, // Starting point
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid', // Styling theme for the table
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [0, 57, 107], textColor: [255, 255, 255] }, // Custom header color
+      alternateRowStyles: { fillColor: [240, 240, 240] }, // Alternating row colors
+      margin: { top: 10 },
+    });
+
+    // Display total number of employees below the table
+    const finalY = doc.previousAutoTable.finalY + 10; // Get the position after the table
+    doc.setFontSize(12);
+    doc.text(`Total Employees: ${filteredEmployees.length}`, 14, finalY);
+
+    // Add a footer with page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10, { align: 'right' });
+    }
+
+    // Convert the document to a Blob and open in a new tab
+    const pdfBlob = doc.output('blob');
+    const blobURL = URL.createObjectURL(pdfBlob);
+    window.open(blobURL);
+  };
 
 
   return (
@@ -395,21 +461,60 @@ const EmployeeTable = () => {
       <DashboardNavbar />
       <ArgonBox py={3} className={classes.card}>
         <Card>
-          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-            <Typography variant="h4">
-              Employees list
+          <ArgonBox
+            display="flex"
+            flexDirection={{ xs: 'column', sm: 'row' }} // Stack vertically on small screens, row on larger screens
+            justifyContent="space-between"
+            alignItems="center"
+            p={3}
+          >
+            {/* Title on the left */}
+            <Typography variant="h4" sx={{ mb: { xs: 2, sm: 0 } }}>
+              Employees List
             </Typography>
-            <Link to="/authentication/sign-up" style={{ textDecoration: 'none' }}>
+
+            {/* Buttons on the right */}
+            <Box
+              display="flex"
+              flexDirection={{ xs: 'column', sm: 'row' }} // Stack vertically on small screens, row on larger screens
+              gap={2}
+              justifyContent="flex-end"
+              alignItems="center"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                textAlign: { xs: 'center', sm: 'right' } // Center text on small screens
+              }}
+            >
+
               <Button
                 variant="contained"
+                color="primary"
+                startIcon={<PictureAsPdf />}
                 className={classes.addButton}
-                startIcon={<Add />}
+
+                onClick={generatePDF}
+                sx={{
+                  width: { xs: '100%', sm: 'auto' }, // Full width on small screens, auto on larger
+                }}
               >
-                New Employee
+                Export PDF
               </Button>
-            </Link>
-          </ArgonBox>
-          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+              <Link to="/authentication/sign-up" style={{ textDecoration: 'none' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Add />}
+                  className={classes.addButton}
+
+                  sx={{
+                    width: { xs: '100%', sm: 'auto' }, // Full width on small screens, auto on larger
+                  }}
+                >
+                  New Employee
+                </Button>
+              </Link>
+            </Box>
+          </ArgonBox>          <ArgonBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
             <TextField
               select
               label="Filter Status"

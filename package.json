@@ -44,6 +44,8 @@
     "chroma-js": "2.4.2",
     "date-fns": "^3.6.0",
     "formik": "^2.4.6",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "jwt-decode": "^4.0.0",
     "prop-types": "^15.8.1",
     "react": ">=16.8.0",
