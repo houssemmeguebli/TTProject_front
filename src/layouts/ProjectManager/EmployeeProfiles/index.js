@@ -71,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
     '& table': {
       width: '100%',
       borderCollapse: 'collapse',
-      borderRadius: '12px',
+      borderRadius: '2px',
       overflow: 'hidden',
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       '& th, td': {
