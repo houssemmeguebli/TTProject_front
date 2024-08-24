@@ -14,7 +14,7 @@ import {
   Select, FormHelperText, FormControl,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardNavbar from "../../../examples/Navbars/DashboardNavbar";
 import DashboardLayout from "../../../examples/LayoutContainers/DashboardLayout";
 import EmployeeService from "../../../_services/EmployeeService";
@@ -142,7 +142,7 @@ const DetailsEmp = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -250,6 +250,24 @@ const DetailsEmp = () => {
 
     fetchEmployeeDetails();
   }, [employeeId]);
+  const currentUser = authService.getCurrentUser();
+  const userid = currentUser ? currentUser.id : null;
+
+// Block User to see other profiles unless they are a Project Manager
+  useEffect(() => {
+    console.log('userid:', userid);
+    console.log('id from URL:', employeeId);
+
+    if (currentUser && userid && employeeId) { // Ensure all are defined
+      if (currentUser.role !== "ProjectManager") {
+        // If the user is not a Project Manager and is trying to access a different profile
+        if (parseInt(userid) !== parseInt(employeeId)) {
+          console.log('Unauthorized access detected.');
+          navigate("/unauthorized"); // Redirect to unauthorized page
+        }
+      }
+    }
+  }, [employeeId, userid, currentUser, navigate]);
 
 
   const handleInputChange = (event) => {

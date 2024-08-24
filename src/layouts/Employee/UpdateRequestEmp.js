@@ -17,8 +17,12 @@ import DashboardNavbar from '../../examples/Navbars/DashboardNavbar';
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 import 'react-datepicker/dist/react-datepicker.css';
+import AuthService from "../../_services/AuthService";
 
 const requestService = new RequestService();
+const authService=new AuthService();
+const currentUser = authService.getCurrentUser();
+
 const bgImage =
   'https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg';
 
@@ -94,7 +98,6 @@ const UpdateRequestEmp = () => {
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
-
   const [request, setRequest] = useState({
     comment: '',
     startDate: new Date(),
@@ -126,7 +129,17 @@ const UpdateRequestEmp = () => {
       fetchRequest();
     }
   }, [requestId]);
-
+//Block User to see other profiles
+  const userid = currentUser ? currentUser.id : null;
+  useEffect(() => {
+    if (userid && request.employeeId) { // Make sure both are defined
+      // Convert both to integers and compare
+      if (parseInt(userid) !== parseInt(request.employeeId)) {
+        console.log('Unauthorized access detected.');
+        navigate("/unauthorized"); // Redirect to unauthorized page
+      }
+    }
+  }, [request.employeeId, userid, navigate]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRequest((prevRequest) => ({

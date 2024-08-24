@@ -77,12 +77,12 @@ function DefaultNavbar({ brand, transparent, light, action }) {
         <ArgonBox display="flex" justifyContent="space-between" alignItems="center" px={2}>
           <ArgonBox component={Link} to="/" py={transparent ? 1.5 : 0.75} lineHeight={1}>
             <ArgonTypography variant="h5" fontWeight="bold" color={light ? "white" : "dark"}>
-              TTAPP
+              TeleWorkPro
             </ArgonTypography>
           </ArgonBox>
           <ArgonBox display={{ xs: "none", lg: "block" }}>
             <ArgonTypography variant="subtitle1" color={light ? "white" : "dark"} mr={2}>
-              Welcome to TTAPP!
+              Welcome to TeleWorkPro!
             </ArgonTypography>
           </ArgonBox>
           {action && typeof action === "object" &&
@@ -129,7 +129,7 @@ function DefaultNavbar({ brand, transparent, light, action }) {
         {mobileNavbar && (
           <ArgonBox display={{ xs: "block", lg: "none" }} mt={2}>
             <ArgonTypography variant="subtitle1" color={light ? "white" : "dark"} mb={2}>
-              Welcome to TTAPP!
+              Welcome to TeleWorkPro!
             </ArgonTypography>
             {action && typeof action === "object" &&
               (action.type === "internal" ? (
@@ -166,7 +166,7 @@ function DefaultNavbar({ brand, transparent, light, action }) {
 
 // Declaring default props for DefaultNavbar
 DefaultNavbar.defaultProps = {
-  brand: "TTAPP",
+  brand: "TeleWorkPro",
   transparent: false,
   light: false,
   action: null,

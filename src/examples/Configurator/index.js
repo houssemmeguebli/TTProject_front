@@ -60,7 +60,7 @@ function Configurator() {
         px={3}
       >
         <ArgonBox>
-          <ArgonTypography variant="h5">TTAPP Configurator</ArgonTypography>
+          <ArgonTypography variant="h5">TeleWorkPro Configurator</ArgonTypography>
           <ArgonTypography variant="body2" color="text">
             See our dashboard options.
           </ArgonTypography>

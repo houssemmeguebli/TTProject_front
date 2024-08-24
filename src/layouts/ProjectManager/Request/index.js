@@ -666,8 +666,13 @@ const Index = () => {
                         </Box>
                         <Box className={classes.cardContent}>
                           <Typography variant="body1">{`Request ID: ${request.requestId}`}</Typography>
-                          <Typography variant="body1">{`Treated by: ${userMap[request.projectManagerId]||"Not treated yet"}`}</Typography>
-                          <Typography variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
+                          <Typography variant="body1">  <span>
+                          {userMap[request.projectManagerId]
+                            ? `Treated by: ${userMap[request.projectManagerId]}`
+                            : <span style={{ color: "#ff9800" }}>Not treated yet</span>}
+                        </span></Typography>
+                          <Typography
+                            variant="body1">{`Start Date: ${format(parseISO(request.startDate), "dd-MM-yyyy")}`}</Typography>
                           <Typography variant="body1">{`End Date: ${format(parseISO(request.endDate), "dd-MM-yyyy")}`}</Typography>
                           <Typography variant="body1">{`Days: ${getBusinessDaysCount(parseISO(request.startDate), parseISO(request.endDate))}`}</Typography>
                           <Typography variant="body1">{`Comment: ${request.comment || "No comments"}`}</Typography>
@@ -719,7 +724,9 @@ const Index = () => {
                       <tr key={request.requestId}>
                         <td style={{ textAlign: "center" }}>{request.requestId}</td>
                         <td style={{ textAlign: "center" }}>{userMap[request.employeeId]}</td>
-                        <td style={{ textAlign: "center" }}>{userMap[request.projectManagerId] || "Not treated yet"}</td>
+                        <td style={{ textAlign: "center", color: userMap[request.projectManagerId] ? "inherit" : "#ff9800" }}>
+                          {userMap[request.projectManagerId] || "Not treated yet"}
+                        </td>
                         <td style={{ textAlign: "center" }}>
                           <span style={{ margin: "0 10px" }}>From</span>
                           <span style={{ fontWeight: "bold" }}>{format(new Date(request.startDate), "dd-MM-yyyy")}</span>
@@ -868,7 +875,9 @@ const Index = () => {
                   <TableRow>
                     <TableCell className={classes.tableCell}>Treated By</TableCell>
                     <TableCell className={classes.tableCell}>
-                      {userMap[selectedRequest.projectManagerId] || 'Not treated yet'}
+                      {userMap[selectedRequest.projectManagerId]
+                        ? userMap[selectedRequest.projectManagerId]
+                        : <ArgonBox sx={{ color: '#ff9800' }}>Not treated yet</ArgonBox>}
                     </TableCell>
                   </TableRow>
                   <TableRow>

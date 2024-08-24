@@ -192,7 +192,7 @@ export default function App() {
               <Sidenav
                 color={sidenavColor}
                 brand={darkSidenav || darkMode ? brand : brandDark}
-                brandName="TTAPP"
+                brandName="TeleWorkPro"
                 routes={routes}
               />
               <Configurator />
@@ -214,7 +214,7 @@ export default function App() {
             <Sidenav
               color={sidenavColor}
               brand={darkSidenav || darkMode ? brand : brandDark}
-              brandName="TTAPP"
+              brandName="TeleWorkPro"
               routes={routes}
             />
             <Configurator />
