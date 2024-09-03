@@ -101,6 +101,7 @@ const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [userMap, setUserMap] = useState({});
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
 
   const fetchUsers = async (userIds) => {
     try {
@@ -119,6 +120,16 @@ const Calendar = () => {
       console.error('Error fetching users:', error);
     }
   };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 700);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -242,7 +253,7 @@ const Calendar = () => {
                     fcEvent: 'none',
                 }}
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                  initialView="dayGridMonth"
+                  initialView={isMobile ? 'timeGridDay' : 'dayGridMonth'}
                   events={filteredEvents}
                   headerToolbar={{
                     left: 'prev,next today',
