@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -102,6 +102,7 @@ const Calendar = () => {
   const [userMap, setUserMap] = useState({});
   const [filterStatus, setFilterStatus] = useState('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
+  const calendarRef = useRef(null);
 
   const fetchUsers = async (userIds) => {
     try {
@@ -120,12 +121,25 @@ const Calendar = () => {
       console.error('Error fetching users:', error);
     }
   };
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 700);
+
+      // Change the calendar view based on the screen size
+      const calendarApi = calendarRef.current.getApi();
+      if (window.innerWidth < 700) {
+        calendarApi.changeView('dayGridDay');
+      } else {
+        calendarApi.changeView('dayGridMonth');
+      }
     };
 
+    // Set the correct view on initial render
+    handleResize();
+
     window.addEventListener('resize', handleResize);
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -249,26 +263,17 @@ const Calendar = () => {
             <Grid item xs={12}>
               <div className={classes.calendarContainer}>
                 <FullCalendar
-                  sx={{
-                    fcEvent: 'none',
-                }}
+                  ref={calendarRef}
                   plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                  initialView={isMobile ? 'timeGridDay' : 'dayGridMonth'}
+                  initialView={isMobile ? 'dayGridDay' : 'dayGridMonth'}
                   events={filteredEvents}
                   headerToolbar={{
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: isMobile ? '' : 'dayGridMonth,timeGridWeek,dayGridDay'  // Disable view switching on mobile
                   }}
-                  dayCellDidMount={(info) => {
-                    if (info.date.getDay() === 0 || info.date.getDay() === 6) {
-                      info.el.style.backgroundColor = '#f5f5f5';
-                    }
-                  }}
-                  className={classes.calendar}
-                  height="auto"
-
                 />
+
               </div>
             </Grid>
 
